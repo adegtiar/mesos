@@ -21,6 +21,9 @@ RY_HTTP_PARSER = third_party/ry-http-parser-1c3624a
 # Get better debugging info.
 CXXFLAGS += -g
 
+# Optimize code.
+CXXFLAGS += -O2
+
 # Add include and source directory to CXXFLAGS.
 CXXFLAGS += -I$(SRCDIR)/include -I$(SRCDIR)
 
