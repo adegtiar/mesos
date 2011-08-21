@@ -151,7 +151,7 @@ protected:
     if (!local) {
       exit(0);
     } else {
-      terminate(this);
+      terminate(self());
     }
   }
 
@@ -170,7 +170,7 @@ protected:
     if (!local) {
       killpg(0, SIGKILL);
     } else {
-      terminate(this);
+      terminate(self());
     }
   }
 

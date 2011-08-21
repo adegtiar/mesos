@@ -2839,7 +2839,7 @@ void ProcessBase::send(const UPID& to, const string& name, const char* data, siz
 }
 
 
-string ProcessBase::receive(double secs)
+const string& ProcessBase::receive(double secs)
 {
   // Free current message.
   if (current != NULL) {
@@ -2881,7 +2881,7 @@ string ProcessBase::receive(double secs)
 }
 
 
-string ProcessBase::serve(double secs, bool once)
+const string& ProcessBase::serve(double secs, bool once)
 {
   double startTime = elapsedTime();
 
@@ -2955,6 +2955,7 @@ string ProcessBase::serve(double secs, bool once)
 //     }
 
     if ((current = dequeue<Message>()) != NULL) {
+      VLOG(2) << "Dequeued '" << name() << "' for " << self();
       if (messageHandlers.count(name()) > 0) {
         messageHandlers[name()]();
 	continue;

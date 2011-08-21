@@ -93,10 +93,10 @@ protected:
             size_t length = 0);
 
   // Blocks for message at most specified seconds (0 implies forever).
-  std::string receive(double secs = 0);
+  const std::string& receive(double secs = 0);
 
   // Processes dispatch messages.
-  std::string serve(double secs = 0, bool once = false);
+  const std::string& serve(double secs = 0, bool once = false);
 
   // Blocks at least specified seconds (may block longer).
   void pause(double secs);
