@@ -105,9 +105,31 @@ messages/log.pb.cc: $(srcdir)/messages/log.proto
 	$(PROTOC) -I$(srcdir)/messages -I$(top_srcdir)/include/mesos \
             --cpp_out=messages $(srcdir)/messages/log.proto
 
+mesos.jar: $(srcdir)/java/src/org/apache/mesos/*.java $(top_srcdir)/include/mesos/mesos.proto
+if HAS_JAVA
+	mkdir -p $(top_builddir)/$(PROTOBUF)/java/src/main/java
+	$(PROTOC) --java_out=$(top_builddir)/$(PROTOBUF)/java/src/main/java -I$(top_srcdir)/$(PROTOBUF)/src $(top_srcdir)/$(PROTOBUF)/src/google/protobuf/descriptor.proto
+	$(JAVA_HOME)/bin/javac -d $(top_builddir)/$(PROTOBUF)/java/src/main/java $(top_srcdir)/$(PROTOBUF)/java/src/main/java/com/google/protobuf/*.java $(top_builddir)/$(PROTOBUF)/java/src/main/java/com/google/protobuf/*.java
+	rm -f java/classes/org/apache/mesos/*
+	mkdir -p java/classes/org/apache/mesos
+	$(JAVA_HOME)/bin/javac -classpath $(top_builddir)/$(PROTOBUF)/java/src/main/java -sourcepath java/generated -d java/classes java/generated/org/apache/mesos/*.java
+	$(JAVA_HOME)/bin/javac -classpath $(top_builddir)/$(PROTOBUF)/java/src/main/java:java/classes -sourcepath $(srcdir)/java/src -d java/classes $(srcdir)/java/src/org/apache/mesos/*.java
+	$(JAVA_HOME)/bin/jar cf $@ -C java/classes org
+	$(JAVA_HOME)/bin/javah -d java/jni -classpath $(top_builddir)/$(PROTOBUF)/java/src/main/java:java/classes org.apache.mesos.MesosSchedulerDriver
+	$(JAVA_HOME)/bin/javah -d java/jni -classpath $(top_builddir)/$(PROTOBUF)/java/src/main/java:java/classes org.apache.mesos.MesosExecutorDriver
+endif
+
+# TODO(*): Build master/slave webui (as libraries for ..._la_CPPFLAGS). 
+# TODO(*): Build the rest of the mesos-* binaries.
+# TODO(*): Build examples. 
+# TODO(*): Build native Python code.
+# TODO(*): Get external (i.e., script based) tests working.
+
+all-local: mesos.jar
+
 CLEANFILES = mesos.pb.h mesos.pb.cc messages/messages.pb.h	\
              messages/messages.pb.cc messages/log.pb.h		\
-             messages/log.pb.cc
+             messages/log.pb.cc mesos.jar
 
 bin_PROGRAMS = mesos-local
 mesos_local_SOURCES = local/main.cpp
@@ -116,7 +138,6 @@ mesos_local_LDADD = $(PTHREAD_LIBS) libmesos.la
 # TODO(benh): Eliminate optimization flags when building tests to
 # speed them up.
 
-# TODO(benh): Get external (i.e., script based) tests working.
 
 check_PROGRAMS = mesos-tests
 mesos_tests_SOURCES = tests/main.cpp tests/utils.cpp			\

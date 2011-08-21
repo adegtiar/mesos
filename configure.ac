@@ -142,6 +142,7 @@ AC_ARG_WITH([java-home],
 		    *)
                       JAVA_HOME="$withval"
                       HAS_JAVA="1"
+                      has_java=true
                       if test -z "$JAVA_HEADERS"; then
                         JAVA_HEADERS="$JAVA_HOME/include/$OS_NAME"
                       fi
@@ -150,6 +151,7 @@ AC_ARG_WITH([java-home],
 	         [])
 AC_SUBST(JAVA_HOME)
 AC_SUBST(HAS_JAVA)
+AM_CONDITIONAL([HAS_JAVA], [test x$has_java = xtrue])
 
 PYTHON_HEADERS=""
 PYTHON_LDFLAGS=""
@@ -193,10 +195,10 @@ AC_ARG_WITH([webui],
 *** --with-webui does not take arguments]) ;;
 	    esac],
 	    [])
-AM_CONDITIONAL([WITH_WEBUI], [test x$webui = xtrue])
-AC_SUBST(WITH_WEBUI)
 AC_SUBST(WEBUI_CPPFLAGS)
 AC_SUBST(WEBUI_LDFLAGS)
+AC_SUBST(WITH_WEBUI)
+AM_CONDITIONAL([WITH_WEBUI], [test x$webui = xtrue])
 
 WITH_ZOOKEEPER="0"
 AC_ARG_WITH([zookeeper],
@@ -215,7 +217,8 @@ AC_ARG_WITH([included-zookeeper],
   AC_HELP_STRING([--with-included-zookeeper],
                  [build with included ZooKeeper]),
 	    [case "$with_included_zookeeper" in
-              yes) WITH_ZOOKEEPER="1"; included_zookeeper=true ;;
+              yes) WITH_ZOOKEEPER="1"
+                   included_zookeeper=true ;;
               no) included_zookeeper=false ;;
               *) AC_MSG_ERROR([
 *** --with-included-zookeeper does not take arguments]) ;;
