@@ -623,11 +623,10 @@ CXX
 WITH_INCLUDED_ZOOKEEPER_FALSE
 WITH_INCLUDED_ZOOKEEPER_TRUE
 WITH_ZOOKEEPER
-SWIG
 WEBUI_LDFLAGS
-WEBUI_CXXFLAGS
-WEBUI_CFLAGS
-WITH_WEBUI
+WEBUI_CPPFLAGS
+WITH_WEBUI_FALSE
+WITH_WEBUI_TRUE
 HAS_PYTHON
 PYTHON_LDFLAGS
 PYTHON_HEADERS
@@ -765,7 +764,6 @@ with_java_headers
 with_java_home
 with_python_headers
 with_webui
-with_swig
 with_zookeeper
 with_included_zookeeper
 with_gnu_ld
@@ -792,7 +790,6 @@ LDFLAGS
 LIBS'
 ac_subdirs_all='third_party/protobuf-2.3.0
 third_party/glog-0.3.1
-third_party/gmock-1.5.0
 third_party/zookeeper-3.3.1/src/c
 third_party/libprocess'
 
@@ -1439,7 +1436,6 @@ Optional Packages:
   --with-python-headers=DIR
                           find Python headers in DIR
   --with-webui            enable web UI (requires Python)
-  --with-swig=PATH        use the SWIG binary at PATH
   --with-zookeeper        use ZooKeeper support
   --with-included-zookeeper
                           build with included ZooKeeper
@@ -11388,8 +11384,6 @@ subdirs="$subdirs third_party/protobuf-2.3.0"
 
 subdirs="$subdirs third_party/glog-0.3.1"
 
-subdirs="$subdirs third_party/gmock-1.5.0"
-
 subdirs="$subdirs third_party/zookeeper-3.3.1/src/c"
 
 subdirs="$subdirs third_party/libprocess"
@@ -11504,45 +11498,33 @@ fi
 
 
 
-WITH_WEBUI="0"
-WEBUI_CFLAGS=""
-WEBUI_CXXFLAGS=""
-WEBUI_LDFLAGS=""
 
 # Check whether --with-webui was given.
 if test "${with_webui+set}" = set; then :
   withval=$with_webui; case "$with_webui" in
-		    yes) WITH_WEBUI="1"
-                         echo running $PYTHON to find compiler flags for embedding it...
-                         WEBUI_CFLAGS=`$PYTHON -c 'from distutils import sysconfig; print "-I" + sysconfig.get_config_var("INCLUDEPY")'`
-                         WEBUI_CXXFLAGS=$WEBUI_CFLAGS
-                         WEBUI_LDFLAGS=`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_config_var("LINKFORSHARED") + " -lpython" + sysconfig.get_config_var("VERSION")'`
-                         if [ "$?" -ne "0" ]; then
-                           as_fn_error $? "
+              yes) webui=true
+                   echo running $PYTHON to find compiler flags for embedding it...
+                   WEBUI_CPPFLAGS=`$PYTHON -c 'from distutils import sysconfig; print "-I" + sysconfig.get_config_var("INCLUDEPY")'`
+                   WEBUI_LDFLAGS=`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_config_var("LINKFORSHARED") + " -lpython" + sysconfig.get_config_var("VERSION")'`
+                   if [ "$?" -ne "0" ]; then
+                     as_fn_error $? "
 *** Failed to determine compiler flags for embedding Python, needed by web UI.
 *** Check that you have Python 2.6 development packages installed." "$LINENO" 5
-                         fi ;;
-                    no) WITH_WEBUI="0" ;;
-		    *) as_fn_error $? "
+                   fi ;;
+              no) webui=false ;;
+              *) as_fn_error $? "
 *** --with-webui does not take arguments" "$LINENO" 5 ;;
-	          esac
+	    esac
 fi
 
-
-
-
-
-
-SWIG="swig"
-
-# Check whether --with-swig was given.
-if test "${with_swig+set}" = set; then :
-  withval=$with_swig; case "$with_swig" in
-		    yes) as_fn_error $? "
-*** --with-swig requires an argument" "$LINENO" 5 ;;
-		    *) SWIG="$withval" ;;
-	          esac
+ if test x$webui = xtrue; then
+  WITH_WEBUI_TRUE=
+  WITH_WEBUI_FALSE='#'
+else
+  WITH_WEBUI_TRUE='#'
+  WITH_WEBUI_FALSE=
 fi
+
 
 
 
@@ -11571,7 +11553,7 @@ if test "${with_included_zookeeper+set}" = set; then :
 	    esac
 fi
 
- if test "x$included_zookeeper" = xtrue; then
+ if test x$included_zookeeper = xtrue; then
   WITH_INCLUDED_ZOOKEEPER_TRUE=
   WITH_INCLUDED_ZOOKEEPER_FALSE='#'
 else
@@ -15801,6 +15783,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${WITH_WEBUI_TRUE}" && test -z "${WITH_WEBUI_FALSE}"; then
+  as_fn_error $? "conditional \"WITH_WEBUI\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${WITH_INCLUDED_ZOOKEEPER_TRUE}" && test -z "${WITH_INCLUDED_ZOOKEEPER_FALSE}"; then

@@ -63,7 +63,6 @@ ac_configure_args="$ac_configure_args --enable-shared=no"
 
 AC_CONFIG_SUBDIRS([third_party/protobuf-2.3.0])
 AC_CONFIG_SUBDIRS([third_party/glog-0.3.1])
-AC_CONFIG_SUBDIRS([third_party/gmock-1.5.0])
 AC_CONFIG_SUBDIRS([third_party/zookeeper-3.3.1/src/c])
 AC_CONFIG_SUBDIRS([third_party/libprocess])
 
@@ -196,18 +195,6 @@ AM_CONDITIONAL([WITH_WEBUI],
                [test x$webui = xtrue])
 AC_SUBST(WEBUI_CPPFLAGS)
 AC_SUBST(WEBUI_LDFLAGS)
-
-SWIG="swig"
-AC_ARG_WITH([swig],
-  AC_HELP_STRING([--with-swig=PATH],
-                 [use the SWIG binary at PATH]),
-            [case "$with_swig" in
-	      yes) AC_MSG_ERROR([
-*** --with-swig requires an argument]) ;;
-              *) SWIG="$withval" ;;
-	    esac],
-	    [])
-AC_SUBST(SWIG)
 
 WITH_ZOOKEEPER="0"
 AC_ARG_WITH([zookeeper],

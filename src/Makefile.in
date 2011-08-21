@@ -245,12 +245,9 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
-SWIG = @SWIG@
 VERSION = @VERSION@
-WEBUI_CFLAGS = @WEBUI_CFLAGS@
-WEBUI_CXXFLAGS = @WEBUI_CXXFLAGS@
+WEBUI_CPPFLAGS = @WEBUI_CPPFLAGS@
 WEBUI_LDFLAGS = @WEBUI_LDFLAGS@
-WITH_WEBUI = @WITH_WEBUI@
 WITH_ZOOKEEPER = @WITH_ZOOKEEPER@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -1433,8 +1430,6 @@ uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES
 	uninstall-am uninstall-binPROGRAMS uninstall-libLTLIBRARIES
 
 
-FORCE:
-
 mesos.pb.cc: $(top_srcdir)/include/mesos/mesos.proto
 	mkdir -p java/generated
 	$(PROTOC) -I$(top_srcdir)/include/mesos \
@@ -1451,6 +1446,8 @@ messages/log.pb.cc: $(srcdir)/messages/log.proto
 	mkdir -p messages
 	$(PROTOC) -I$(srcdir)/messages -I$(top_srcdir)/include/mesos \
             --cpp_out=messages $(srcdir)/messages/log.proto
+
+FORCE:
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

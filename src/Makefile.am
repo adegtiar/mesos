@@ -81,32 +81,6 @@ libbuild_la_CPPFLAGS = -DBUILD_DATE="\"$$(date '+%Y-%m-%d %H:%M:%S')\"" \
                        $(AM_CPPFLAGS)
 libbuild_la_DEPENDENCIES = FORCE
 
-FORCE:
-
-noinst_LTLIBRARIES = libwebui.la
-libwebui_la_SOURCES = webui/master/swig/master_wrap.cpp	\
-                      webui/slave/swig/slave_wrap.cpp
-
-webui/master/swig/master_wrap.cpp: $(srcdir)/webui/master/swig/master.i $(srcdir)/master/state.hpp $(srcdir)/master/webui.hpp config/config.hpp
-if WITH_WEBUI
-	mkdir -p webui/master/swig
-	$(SWIG) -c++ -python -outdir webui/master/swig -I$(srcdir) -o $@ $<
-	cp -r webui/master/swig/master.py $(BINDIR)/webui/master/swig
-else
-	echo "" > $@
-endif
-
-webui/slave/swig/slave_wrap.cpp: $(SRCDIR)/webui/slave/swig/slave.i $(SRCDIR)/slave/state.hpp $(SRCDIR)/slave/webui.hpp $(SRCDIR)/slave/slave.hpp config/config.hpp $(BINDIR)/webui/slave/swig
-ifeq ($(WITH_WEBUI),1)
-	mkdir -p webui/slave/swig
-	$(SWIG) -c++ -python -outdir webui/slave/swig -I$(SRCDIR) -o $@ $<
-	cp -r webui/slave/swig/slave.py $(BINDIR)/webui/slave/swig
-else
-	echo "" > $@
-endif
-
-
-
 PROTOC = $(top_builddir)/$(PROTOBUF)/src/protoc
 
 mesos.pb.cc: $(top_srcdir)/include/mesos/mesos.proto
@@ -155,3 +129,5 @@ mesos_tests_LDADD = $(PTHREAD_LIBS) libmesos.la				 \
                     $(top_builddir)/$(GMOCK)/gtest/lib/.libs/libgtest.la
 
 TESTS = mesos-tests
+
+FORCE:
