@@ -14,10 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+# Build objects in respective subdirectories, necessary for dealing
+# with naming conflicts, i.e,, master/http.cpp and slave/http.cpp.
+AUTOMAKE_OPTIONS = subdir-objects
+
 BOOST = third_party/boost-1.37.0
 PROTOBUF = third_party/protobuf-2.3.0
 GLOG = third_party/glog-0.3.1
-GMOCK = third_party/gmock-1.5.0
+GMOCK = third_party/gmock-1.6.0
+GTEST = $(GMOCK)/gtest
 ZOOKEEPER = third_party/zookeeper-3.3.1/src/c
 LIBPROCESS = third_party/libprocess
 LIBEV = $(LIBPROCESS)/third_party/libev-3.8
@@ -49,11 +54,11 @@ libmesos_la_SOURCES = mesos.pb.cc messages/messages.pb.cc		\
                       messages/log.pb.cc sched/sched.cpp		\
                       local/local.cpp log/replica.cpp			\
                       log/coordinator.cpp master/master.cpp		\
-                      master/slaves_manager.cpp				\
+                      master/http.cpp master/slaves_manager.cpp		\
                       master/frameworks_manager.cpp			\
                       master/allocator_factory.cpp			\
                       master/simple_allocator.cpp slave/slave.cpp	\
-                      slave/isolation_module.cpp			\
+                      slave/http.cpp slave/isolation_module.cpp		\
                       slave/process_based_isolation_module.cpp		\
                       slave/reaper.cpp launcher/launcher.cpp		\
                       exec/exec.cpp common/fatal.cpp common/lock.cpp	\
@@ -108,6 +113,11 @@ bin_PROGRAMS = mesos-local
 mesos_local_SOURCES = local/main.cpp
 mesos_local_LDADD = $(PTHREAD_LIBS) libmesos.la
 
+# TODO(benh): Eliminate optimization flags when building tests to
+# speed them up.
+
+# TODO(benh): Get external (i.e., script based) tests working.
+
 check_PROGRAMS = mesos-tests
 mesos_tests_SOURCES = tests/main.cpp tests/utils.cpp			\
 	              tests/master_tests.cpp				\
@@ -122,11 +132,10 @@ mesos_tests_SOURCES = tests/main.cpp tests/utils.cpp			\
 	              tests/multimap_tests.cpp				\
 	              tests/protobuf_io_tests.cpp			\
 	              tests/lxc_isolation_tests.cpp
-mesos_tests_CPPFLAGS = -I$(top_srcdir)/$(GMOCK)/gtest/include		\
+mesos_tests_CPPFLAGS = -I$(top_srcdir)/$(GTEST)/include	                \
                        -I$(top_srcdir)/$(GMOCK)/include $(AM_CPPFLAGS)
-mesos_tests_LDADD = $(PTHREAD_LIBS) libmesos.la				 \
-                    $(top_builddir)/$(GMOCK)/lib/.libs/libgmock.la	 \
-                    $(top_builddir)/$(GMOCK)/gtest/lib/.libs/libgtest.la
+mesos_tests_LDADD = $(PTHREAD_LIBS) $(top_builddir)/.libs/libgmock.la	\
+                    libmesos.la
 
 TESTS = mesos-tests
 

@@ -178,6 +178,7 @@ AC_ARG_WITH([webui],
                  [enable web UI (requires Python)]),
             [case "$with_webui" in
               yes) webui=true
+                   WITH_WEBUI=1
                    echo running $PYTHON to find compiler flags for embedding it...
                    WEBUI_CPPFLAGS=`$PYTHON -c 'from distutils import sysconfig; print "-I" + sysconfig.get_config_var("INCLUDEPY")'`
                    WEBUI_LDFLAGS=`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_config_var("LINKFORSHARED") + " -lpython" + sysconfig.get_config_var("VERSION")'`
@@ -186,13 +187,14 @@ AC_ARG_WITH([webui],
 *** Failed to determine compiler flags for embedding Python, needed by web UI.
 *** Check that you have Python 2.6 development packages installed.])
                    fi ;;
-              no) webui=false ;;
+              no) webui=false
+                  WITH_WEBUI=0 ;;
               *) AC_MSG_ERROR([
 *** --with-webui does not take arguments]) ;;
 	    esac],
 	    [])
-AM_CONDITIONAL([WITH_WEBUI],
-               [test x$webui = xtrue])
+AM_CONDITIONAL([WITH_WEBUI], [test x$webui = xtrue])
+AC_SUBST(WITH_WEBUI)
 AC_SUBST(WEBUI_CPPFLAGS)
 AC_SUBST(WEBUI_LDFLAGS)
 

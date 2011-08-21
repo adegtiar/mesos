@@ -625,6 +625,7 @@ WITH_INCLUDED_ZOOKEEPER_TRUE
 WITH_ZOOKEEPER
 WEBUI_LDFLAGS
 WEBUI_CPPFLAGS
+WITH_WEBUI
 WITH_WEBUI_FALSE
 WITH_WEBUI_TRUE
 HAS_PYTHON
@@ -11503,6 +11504,7 @@ fi
 if test "${with_webui+set}" = set; then :
   withval=$with_webui; case "$with_webui" in
               yes) webui=true
+                   WITH_WEBUI=1
                    echo running $PYTHON to find compiler flags for embedding it...
                    WEBUI_CPPFLAGS=`$PYTHON -c 'from distutils import sysconfig; print "-I" + sysconfig.get_config_var("INCLUDEPY")'`
                    WEBUI_LDFLAGS=`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_config_var("LINKFORSHARED") + " -lpython" + sysconfig.get_config_var("VERSION")'`
@@ -11511,7 +11513,8 @@ if test "${with_webui+set}" = set; then :
 *** Failed to determine compiler flags for embedding Python, needed by web UI.
 *** Check that you have Python 2.6 development packages installed." "$LINENO" 5
                    fi ;;
-              no) webui=false ;;
+              no) webui=false
+                  WITH_WEBUI=0 ;;
               *) as_fn_error $? "
 *** --with-webui does not take arguments" "$LINENO" 5 ;;
 	    esac
@@ -11524,6 +11527,7 @@ else
   WITH_WEBUI_TRUE='#'
   WITH_WEBUI_FALSE=
 fi
+
 
 
 

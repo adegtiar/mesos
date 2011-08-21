@@ -32,7 +32,8 @@ DIST_SUBDIRS = $(subdirs) src
 
 PROTOBUF = third_party/protobuf-2.3.0
 GLOG = third_party/glog-0.3.1
-GMOCK = third_party/gmock-1.5.0
+GMOCK = third_party/gmock-1.6.0
+GTEST = $(GMOCK)/gtest
 ZOOKEEPER = third_party/zookeeper-3.3.1/src/c
 LIBPROCESS = third_party/libprocess
 
@@ -40,17 +41,23 @@ all-local:
 	@echo "Building third-party libraries"
 	@cd $(PROTOBUF) && $(MAKE) $(AM_MAKEFLAGS) all
 	@cd $(GLOG) && $(MAKE) $(AM_MAKEFLAGS) all
-	@cd $(GMOCK) && $(MAKE) $(AM_MAKEFLAGS) all
 if WITH_INCLUDED_ZOOKEEPER
 	@cd $(ZOOKEEPER) && $(MAKE) $(AM_MAKEFLAGS) all
 endif
 	@cd $(LIBPROCESS) && $(MAKE) $(AM_MAKEFLAGS) all
 
+check_LTLIBRARIES = libgmock.la
+libgmock_la_SOURCES = $(top_srcdir)/$(GMOCK)/src/gmock-all.cc	\
+                      $(top_srcdir)/$(GTEST)/src/gtest-all.cc
+libgmock_la_CPPFLAGS = -I$(top_srcdir)/$(GTEST)/include         \
+                       -I$(top_srcdir)/$(GMOCK)/include         \
+                       -I$(top_srcdir)/$(GTEST)                 \
+                       -I$(top_srcdir)/$(GMOCK)
+
 clean-local:
 	@echo "Cleaning third-party libraries"
 	@cd $(PROTOBUF) && $(MAKE) $(AM_MAKEFLAGS) clean
 	@cd $(GLOG) && $(MAKE) $(AM_MAKEFLAGS) clean
-	@cd $(GMOCK) && $(MAKE) $(AM_MAKEFLAGS) clean
 if WITH_INCLUDED_ZOOKEEPER
 	@cd $(ZOOKEEPER) && $(MAKE) $(AM_MAKEFLAGS) clean
 endif

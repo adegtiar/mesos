@@ -97,7 +97,8 @@ am__base_list = \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)"
 LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
 libbuild_la_LIBADD =
-am_libbuild_la_OBJECTS = libbuild_la-build.lo
+am__dirstamp = $(am__leading_dot)dirstamp
+am_libbuild_la_OBJECTS = common/libbuild_la-build.lo
 libbuild_la_OBJECTS = $(am_libbuild_la_OBJECTS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
@@ -107,37 +108,43 @@ libmesos_la_DEPENDENCIES = libbuild.la \
 	$(top_builddir)/$(GLOG)/.libs/libglog.la \
 	$(top_builddir)/$(LIBPROCESS)/libprocess.a \
 	$(top_builddir)/$(LIBEV)/.libs/libev.la $(am__append_2)
-am_libmesos_la_OBJECTS = mesos.pb.lo messages.pb.lo log.pb.lo sched.lo \
-	local.lo replica.lo coordinator.lo master.lo slaves_manager.lo \
-	frameworks_manager.lo allocator_factory.lo simple_allocator.lo \
-	slave.lo isolation_module.lo process_based_isolation_module.lo \
-	reaper.lo launcher.lo exec.lo fatal.lo lock.lo detector.lo \
-	url_processor.lo configurator.lo string_utils.lo logging.lo \
-	date_utils.lo tokenize.lo resources.lo
+am_libmesos_la_OBJECTS = mesos.pb.lo messages/messages.pb.lo \
+	messages/log.pb.lo sched/sched.lo local/local.lo \
+	log/replica.lo log/coordinator.lo master/master.lo \
+	master/http.lo master/slaves_manager.lo \
+	master/frameworks_manager.lo master/allocator_factory.lo \
+	master/simple_allocator.lo slave/slave.lo slave/http.lo \
+	slave/isolation_module.lo \
+	slave/process_based_isolation_module.lo slave/reaper.lo \
+	launcher/launcher.lo exec/exec.lo common/fatal.lo \
+	common/lock.lo detector/detector.lo detector/url_processor.lo \
+	configurator/configurator.lo common/string_utils.lo \
+	common/logging.lo common/date_utils.lo common/tokenize.lo \
+	common/resources.lo
 libmesos_la_OBJECTS = $(am_libmesos_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS)
-am_mesos_local_OBJECTS = main.$(OBJEXT)
+am_mesos_local_OBJECTS = local/main.$(OBJEXT)
 mesos_local_OBJECTS = $(am_mesos_local_OBJECTS)
 mesos_local_DEPENDENCIES = libmesos.la
-am_mesos_tests_OBJECTS = mesos_tests-main.$(OBJEXT) \
-	mesos_tests-utils.$(OBJEXT) mesos_tests-master_tests.$(OBJEXT) \
-	mesos_tests-resource_offer_tests.$(OBJEXT) \
-	mesos_tests-resource_offer_reply_tests.$(OBJEXT) \
-	mesos_tests-fault_tolerant_tests.$(OBJEXT) \
-	mesos_tests-log_tests.$(OBJEXT) \
-	mesos_tests-resources_tests.$(OBJEXT) \
-	mesos_tests-uuid_tests.$(OBJEXT) \
-	mesos_tests-external_tests.$(OBJEXT) \
-	mesos_tests-sample_frameworks_tests.$(OBJEXT) \
-	mesos_tests-configurator_tests.$(OBJEXT) \
-	mesos_tests-string_utils_tests.$(OBJEXT) \
-	mesos_tests-multimap_tests.$(OBJEXT) \
-	mesos_tests-protobuf_io_tests.$(OBJEXT) \
-	mesos_tests-lxc_isolation_tests.$(OBJEXT)
+am_mesos_tests_OBJECTS = tests/mesos_tests-main.$(OBJEXT) \
+	tests/mesos_tests-utils.$(OBJEXT) \
+	tests/mesos_tests-master_tests.$(OBJEXT) \
+	tests/mesos_tests-resource_offer_tests.$(OBJEXT) \
+	tests/mesos_tests-resource_offer_reply_tests.$(OBJEXT) \
+	tests/mesos_tests-fault_tolerant_tests.$(OBJEXT) \
+	tests/mesos_tests-log_tests.$(OBJEXT) \
+	tests/mesos_tests-resources_tests.$(OBJEXT) \
+	tests/mesos_tests-uuid_tests.$(OBJEXT) \
+	tests/mesos_tests-external_tests.$(OBJEXT) \
+	tests/mesos_tests-sample_frameworks_tests.$(OBJEXT) \
+	tests/mesos_tests-configurator_tests.$(OBJEXT) \
+	tests/mesos_tests-string_utils_tests.$(OBJEXT) \
+	tests/mesos_tests-multimap_tests.$(OBJEXT) \
+	tests/mesos_tests-protobuf_io_tests.$(OBJEXT) \
+	tests/mesos_tests-lxc_isolation_tests.$(OBJEXT)
 mesos_tests_OBJECTS = $(am_mesos_tests_OBJECTS)
-mesos_tests_DEPENDENCIES = libmesos.la \
-	$(top_builddir)/$(GMOCK)/lib/.libs/libgmock.la \
-	$(top_builddir)/$(GMOCK)/gtest/lib/.libs/libgtest.la
+mesos_tests_DEPENDENCIES = $(top_builddir)/.libs/libgmock.la \
+	libmesos.la
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -248,6 +255,7 @@ STRIP = @STRIP@
 VERSION = @VERSION@
 WEBUI_CPPFLAGS = @WEBUI_CPPFLAGS@
 WEBUI_LDFLAGS = @WEBUI_LDFLAGS@
+WITH_WEBUI = @WITH_WEBUI@
 WITH_ZOOKEEPER = @WITH_ZOOKEEPER@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -307,10 +315,15 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+
+# Build objects in respective subdirectories, necessary for dealing
+# with naming conflicts, i.e,, master/http.cpp and slave/http.cpp.
+AUTOMAKE_OPTIONS = subdir-objects
 BOOST = third_party/boost-1.37.0
 PROTOBUF = third_party/protobuf-2.3.0
 GLOG = third_party/glog-0.3.1
-GMOCK = third_party/gmock-1.5.0
+GMOCK = third_party/gmock-1.6.0
+GTEST = $(GMOCK)/gtest
 ZOOKEEPER = third_party/zookeeper-3.3.1/src/c
 LIBPROCESS = third_party/libprocess
 LIBEV = $(LIBPROCESS)/third_party/libev-3.8
@@ -333,11 +346,11 @@ libmesos_la_SOURCES = mesos.pb.cc messages/messages.pb.cc		\
                       messages/log.pb.cc sched/sched.cpp		\
                       local/local.cpp log/replica.cpp			\
                       log/coordinator.cpp master/master.cpp		\
-                      master/slaves_manager.cpp				\
+                      master/http.cpp master/slaves_manager.cpp		\
                       master/frameworks_manager.cpp			\
                       master/allocator_factory.cpp			\
                       master/simple_allocator.cpp slave/slave.cpp	\
-                      slave/isolation_module.cpp			\
+                      slave/http.cpp slave/isolation_module.cpp		\
                       slave/process_based_isolation_module.cpp		\
                       slave/reaper.cpp launcher/launcher.cpp		\
                       exec/exec.cpp common/fatal.cpp common/lock.cpp	\
@@ -381,12 +394,11 @@ mesos_tests_SOURCES = tests/main.cpp tests/utils.cpp			\
 	              tests/protobuf_io_tests.cpp			\
 	              tests/lxc_isolation_tests.cpp
 
-mesos_tests_CPPFLAGS = -I$(top_srcdir)/$(GMOCK)/gtest/include		\
+mesos_tests_CPPFLAGS = -I$(top_srcdir)/$(GTEST)/include	                \
                        -I$(top_srcdir)/$(GMOCK)/include $(AM_CPPFLAGS)
 
-mesos_tests_LDADD = $(PTHREAD_LIBS) libmesos.la				 \
-                    $(top_builddir)/$(GMOCK)/lib/.libs/libgmock.la	 \
-                    $(top_builddir)/$(GMOCK)/gtest/lib/.libs/libgtest.la
+mesos_tests_LDADD = $(PTHREAD_LIBS) $(top_builddir)/.libs/libgmock.la	\
+                    libmesos.la
 
 all: all-am
 
@@ -462,8 +474,126 @@ clean-noinstLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
+common/$(am__dirstamp):
+	@$(MKDIR_P) common
+	@: > common/$(am__dirstamp)
+common/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) common/$(DEPDIR)
+	@: > common/$(DEPDIR)/$(am__dirstamp)
+common/libbuild_la-build.lo: common/$(am__dirstamp) \
+	common/$(DEPDIR)/$(am__dirstamp)
 libbuild.la: $(libbuild_la_OBJECTS) $(libbuild_la_DEPENDENCIES) 
 	$(AM_V_CXXLD)$(CXXLINK)  $(libbuild_la_OBJECTS) $(libbuild_la_LIBADD) $(LIBS)
+messages/$(am__dirstamp):
+	@$(MKDIR_P) messages
+	@: > messages/$(am__dirstamp)
+messages/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) messages/$(DEPDIR)
+	@: > messages/$(DEPDIR)/$(am__dirstamp)
+messages/messages.pb.lo: messages/$(am__dirstamp) \
+	messages/$(DEPDIR)/$(am__dirstamp)
+messages/log.pb.lo: messages/$(am__dirstamp) \
+	messages/$(DEPDIR)/$(am__dirstamp)
+sched/$(am__dirstamp):
+	@$(MKDIR_P) sched
+	@: > sched/$(am__dirstamp)
+sched/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) sched/$(DEPDIR)
+	@: > sched/$(DEPDIR)/$(am__dirstamp)
+sched/sched.lo: sched/$(am__dirstamp) sched/$(DEPDIR)/$(am__dirstamp)
+local/$(am__dirstamp):
+	@$(MKDIR_P) local
+	@: > local/$(am__dirstamp)
+local/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) local/$(DEPDIR)
+	@: > local/$(DEPDIR)/$(am__dirstamp)
+local/local.lo: local/$(am__dirstamp) local/$(DEPDIR)/$(am__dirstamp)
+log/$(am__dirstamp):
+	@$(MKDIR_P) log
+	@: > log/$(am__dirstamp)
+log/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) log/$(DEPDIR)
+	@: > log/$(DEPDIR)/$(am__dirstamp)
+log/replica.lo: log/$(am__dirstamp) log/$(DEPDIR)/$(am__dirstamp)
+log/coordinator.lo: log/$(am__dirstamp) log/$(DEPDIR)/$(am__dirstamp)
+master/$(am__dirstamp):
+	@$(MKDIR_P) master
+	@: > master/$(am__dirstamp)
+master/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) master/$(DEPDIR)
+	@: > master/$(DEPDIR)/$(am__dirstamp)
+master/master.lo: master/$(am__dirstamp) \
+	master/$(DEPDIR)/$(am__dirstamp)
+master/http.lo: master/$(am__dirstamp) \
+	master/$(DEPDIR)/$(am__dirstamp)
+master/slaves_manager.lo: master/$(am__dirstamp) \
+	master/$(DEPDIR)/$(am__dirstamp)
+master/frameworks_manager.lo: master/$(am__dirstamp) \
+	master/$(DEPDIR)/$(am__dirstamp)
+master/allocator_factory.lo: master/$(am__dirstamp) \
+	master/$(DEPDIR)/$(am__dirstamp)
+master/simple_allocator.lo: master/$(am__dirstamp) \
+	master/$(DEPDIR)/$(am__dirstamp)
+slave/$(am__dirstamp):
+	@$(MKDIR_P) slave
+	@: > slave/$(am__dirstamp)
+slave/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) slave/$(DEPDIR)
+	@: > slave/$(DEPDIR)/$(am__dirstamp)
+slave/slave.lo: slave/$(am__dirstamp) slave/$(DEPDIR)/$(am__dirstamp)
+slave/http.lo: slave/$(am__dirstamp) slave/$(DEPDIR)/$(am__dirstamp)
+slave/isolation_module.lo: slave/$(am__dirstamp) \
+	slave/$(DEPDIR)/$(am__dirstamp)
+slave/process_based_isolation_module.lo: slave/$(am__dirstamp) \
+	slave/$(DEPDIR)/$(am__dirstamp)
+slave/reaper.lo: slave/$(am__dirstamp) slave/$(DEPDIR)/$(am__dirstamp)
+launcher/$(am__dirstamp):
+	@$(MKDIR_P) launcher
+	@: > launcher/$(am__dirstamp)
+launcher/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) launcher/$(DEPDIR)
+	@: > launcher/$(DEPDIR)/$(am__dirstamp)
+launcher/launcher.lo: launcher/$(am__dirstamp) \
+	launcher/$(DEPDIR)/$(am__dirstamp)
+exec/$(am__dirstamp):
+	@$(MKDIR_P) exec
+	@: > exec/$(am__dirstamp)
+exec/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) exec/$(DEPDIR)
+	@: > exec/$(DEPDIR)/$(am__dirstamp)
+exec/exec.lo: exec/$(am__dirstamp) exec/$(DEPDIR)/$(am__dirstamp)
+common/fatal.lo: common/$(am__dirstamp) \
+	common/$(DEPDIR)/$(am__dirstamp)
+common/lock.lo: common/$(am__dirstamp) \
+	common/$(DEPDIR)/$(am__dirstamp)
+detector/$(am__dirstamp):
+	@$(MKDIR_P) detector
+	@: > detector/$(am__dirstamp)
+detector/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) detector/$(DEPDIR)
+	@: > detector/$(DEPDIR)/$(am__dirstamp)
+detector/detector.lo: detector/$(am__dirstamp) \
+	detector/$(DEPDIR)/$(am__dirstamp)
+detector/url_processor.lo: detector/$(am__dirstamp) \
+	detector/$(DEPDIR)/$(am__dirstamp)
+configurator/$(am__dirstamp):
+	@$(MKDIR_P) configurator
+	@: > configurator/$(am__dirstamp)
+configurator/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) configurator/$(DEPDIR)
+	@: > configurator/$(DEPDIR)/$(am__dirstamp)
+configurator/configurator.lo: configurator/$(am__dirstamp) \
+	configurator/$(DEPDIR)/$(am__dirstamp)
+common/string_utils.lo: common/$(am__dirstamp) \
+	common/$(DEPDIR)/$(am__dirstamp)
+common/logging.lo: common/$(am__dirstamp) \
+	common/$(DEPDIR)/$(am__dirstamp)
+common/date_utils.lo: common/$(am__dirstamp) \
+	common/$(DEPDIR)/$(am__dirstamp)
+common/tokenize.lo: common/$(am__dirstamp) \
+	common/$(DEPDIR)/$(am__dirstamp)
+common/resources.lo: common/$(am__dirstamp) \
+	common/$(DEPDIR)/$(am__dirstamp)
 libmesos.la: $(libmesos_la_OBJECTS) $(libmesos_la_DEPENDENCIES) 
 	$(AM_V_CXXLD)$(CXXLINK) -rpath $(libdir) $(libmesos_la_OBJECTS) $(libmesos_la_LIBADD) $(LIBS)
 install-binPROGRAMS: $(bin_PROGRAMS)
@@ -518,605 +648,498 @@ clean-checkPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+local/main.$(OBJEXT): local/$(am__dirstamp) \
+	local/$(DEPDIR)/$(am__dirstamp)
 mesos-local$(EXEEXT): $(mesos_local_OBJECTS) $(mesos_local_DEPENDENCIES) 
 	@rm -f mesos-local$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(mesos_local_OBJECTS) $(mesos_local_LDADD) $(LIBS)
+tests/$(am__dirstamp):
+	@$(MKDIR_P) tests
+	@: > tests/$(am__dirstamp)
+tests/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) tests/$(DEPDIR)
+	@: > tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-main.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-utils.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-master_tests.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-resource_offer_tests.$(OBJEXT):  \
+	tests/$(am__dirstamp) tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-resource_offer_reply_tests.$(OBJEXT):  \
+	tests/$(am__dirstamp) tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-fault_tolerant_tests.$(OBJEXT):  \
+	tests/$(am__dirstamp) tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-log_tests.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-resources_tests.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-uuid_tests.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-external_tests.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-sample_frameworks_tests.$(OBJEXT):  \
+	tests/$(am__dirstamp) tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-configurator_tests.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-string_utils_tests.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-multimap_tests.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-protobuf_io_tests.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+tests/mesos_tests-lxc_isolation_tests.$(OBJEXT):  \
+	tests/$(am__dirstamp) tests/$(DEPDIR)/$(am__dirstamp)
 mesos-tests$(EXEEXT): $(mesos_tests_OBJECTS) $(mesos_tests_DEPENDENCIES) 
 	@rm -f mesos-tests$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(mesos_tests_OBJECTS) $(mesos_tests_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f common/date_utils.$(OBJEXT)
+	-rm -f common/date_utils.lo
+	-rm -f common/fatal.$(OBJEXT)
+	-rm -f common/fatal.lo
+	-rm -f common/libbuild_la-build.$(OBJEXT)
+	-rm -f common/libbuild_la-build.lo
+	-rm -f common/lock.$(OBJEXT)
+	-rm -f common/lock.lo
+	-rm -f common/logging.$(OBJEXT)
+	-rm -f common/logging.lo
+	-rm -f common/resources.$(OBJEXT)
+	-rm -f common/resources.lo
+	-rm -f common/string_utils.$(OBJEXT)
+	-rm -f common/string_utils.lo
+	-rm -f common/tokenize.$(OBJEXT)
+	-rm -f common/tokenize.lo
+	-rm -f configurator/configurator.$(OBJEXT)
+	-rm -f configurator/configurator.lo
+	-rm -f detector/detector.$(OBJEXT)
+	-rm -f detector/detector.lo
+	-rm -f detector/url_processor.$(OBJEXT)
+	-rm -f detector/url_processor.lo
+	-rm -f exec/exec.$(OBJEXT)
+	-rm -f exec/exec.lo
+	-rm -f launcher/launcher.$(OBJEXT)
+	-rm -f launcher/launcher.lo
+	-rm -f local/local.$(OBJEXT)
+	-rm -f local/local.lo
+	-rm -f local/main.$(OBJEXT)
+	-rm -f log/coordinator.$(OBJEXT)
+	-rm -f log/coordinator.lo
+	-rm -f log/replica.$(OBJEXT)
+	-rm -f log/replica.lo
+	-rm -f master/allocator_factory.$(OBJEXT)
+	-rm -f master/allocator_factory.lo
+	-rm -f master/frameworks_manager.$(OBJEXT)
+	-rm -f master/frameworks_manager.lo
+	-rm -f master/http.$(OBJEXT)
+	-rm -f master/http.lo
+	-rm -f master/master.$(OBJEXT)
+	-rm -f master/master.lo
+	-rm -f master/simple_allocator.$(OBJEXT)
+	-rm -f master/simple_allocator.lo
+	-rm -f master/slaves_manager.$(OBJEXT)
+	-rm -f master/slaves_manager.lo
+	-rm -f messages/log.pb.$(OBJEXT)
+	-rm -f messages/log.pb.lo
+	-rm -f messages/messages.pb.$(OBJEXT)
+	-rm -f messages/messages.pb.lo
+	-rm -f sched/sched.$(OBJEXT)
+	-rm -f sched/sched.lo
+	-rm -f slave/http.$(OBJEXT)
+	-rm -f slave/http.lo
+	-rm -f slave/isolation_module.$(OBJEXT)
+	-rm -f slave/isolation_module.lo
+	-rm -f slave/process_based_isolation_module.$(OBJEXT)
+	-rm -f slave/process_based_isolation_module.lo
+	-rm -f slave/reaper.$(OBJEXT)
+	-rm -f slave/reaper.lo
+	-rm -f slave/slave.$(OBJEXT)
+	-rm -f slave/slave.lo
+	-rm -f tests/mesos_tests-configurator_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-external_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-fault_tolerant_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-log_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-lxc_isolation_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-main.$(OBJEXT)
+	-rm -f tests/mesos_tests-master_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-multimap_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-protobuf_io_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-resource_offer_reply_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-resource_offer_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-resources_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-sample_frameworks_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-string_utils_tests.$(OBJEXT)
+	-rm -f tests/mesos_tests-utils.$(OBJEXT)
+	-rm -f tests/mesos_tests-uuid_tests.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allocator_factory.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/configurator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coordinator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/date_utils.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/detector.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exec.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fatal.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/frameworks_manager.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/isolation_module.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/launcher.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbuild_la-build.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/local.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lock.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.pb.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logging.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/master.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos.pb.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-configurator_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-external_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-fault_tolerant_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-log_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-lxc_isolation_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-master_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-multimap_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-protobuf_io_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-resource_offer_reply_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-resource_offer_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-resources_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-sample_frameworks_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-string_utils_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-utils.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesos_tests-uuid_tests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/messages.pb.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/process_based_isolation_module.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/reaper.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/replica.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/resources.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sched.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/simple_allocator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/slave.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/slaves_manager.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/string_utils.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tokenize.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/url_processor.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@common/$(DEPDIR)/date_utils.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@common/$(DEPDIR)/fatal.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@common/$(DEPDIR)/libbuild_la-build.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@common/$(DEPDIR)/lock.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@common/$(DEPDIR)/logging.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@common/$(DEPDIR)/resources.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@common/$(DEPDIR)/string_utils.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@common/$(DEPDIR)/tokenize.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@configurator/$(DEPDIR)/configurator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@detector/$(DEPDIR)/detector.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@detector/$(DEPDIR)/url_processor.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@exec/$(DEPDIR)/exec.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@launcher/$(DEPDIR)/launcher.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@local/$(DEPDIR)/local.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@local/$(DEPDIR)/main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@log/$(DEPDIR)/coordinator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@log/$(DEPDIR)/replica.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@master/$(DEPDIR)/allocator_factory.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@master/$(DEPDIR)/frameworks_manager.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@master/$(DEPDIR)/http.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@master/$(DEPDIR)/master.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@master/$(DEPDIR)/simple_allocator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@master/$(DEPDIR)/slaves_manager.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@messages/$(DEPDIR)/log.pb.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@messages/$(DEPDIR)/messages.pb.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@sched/$(DEPDIR)/sched.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@slave/$(DEPDIR)/http.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@slave/$(DEPDIR)/isolation_module.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@slave/$(DEPDIR)/process_based_isolation_module.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@slave/$(DEPDIR)/reaper.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@slave/$(DEPDIR)/slave.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-configurator_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-external_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-fault_tolerant_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-log_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-lxc_isolation_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-master_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-multimap_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-protobuf_io_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-resource_offer_reply_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-resource_offer_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-resources_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-sample_frameworks_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-string_utils_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-utils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/mesos_tests-uuid_tests.Po@am__quote@
 
 .cc.o:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
 
 .cc.obj:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .cc.lo:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCXX_TRUE@	$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
-libbuild_la-build.lo: common/build.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbuild_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libbuild_la-build.lo -MD -MP -MF $(DEPDIR)/libbuild_la-build.Tpo -c -o libbuild_la-build.lo `test -f 'common/build.cpp' || echo '$(srcdir)/'`common/build.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbuild_la-build.Tpo $(DEPDIR)/libbuild_la-build.Plo
+common/libbuild_la-build.lo: common/build.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbuild_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT common/libbuild_la-build.lo -MD -MP -MF common/$(DEPDIR)/libbuild_la-build.Tpo -c -o common/libbuild_la-build.lo `test -f 'common/build.cpp' || echo '$(srcdir)/'`common/build.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) common/$(DEPDIR)/libbuild_la-build.Tpo common/$(DEPDIR)/libbuild_la-build.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='common/build.cpp' object='libbuild_la-build.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='common/build.cpp' object='common/libbuild_la-build.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbuild_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libbuild_la-build.lo `test -f 'common/build.cpp' || echo '$(srcdir)/'`common/build.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbuild_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o common/libbuild_la-build.lo `test -f 'common/build.cpp' || echo '$(srcdir)/'`common/build.cpp
 
-messages.pb.lo: messages/messages.pb.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT messages.pb.lo -MD -MP -MF $(DEPDIR)/messages.pb.Tpo -c -o messages.pb.lo `test -f 'messages/messages.pb.cc' || echo '$(srcdir)/'`messages/messages.pb.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/messages.pb.Tpo $(DEPDIR)/messages.pb.Plo
+tests/mesos_tests-main.o: tests/main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-main.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-main.Tpo -c -o tests/mesos_tests-main.o `test -f 'tests/main.cpp' || echo '$(srcdir)/'`tests/main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-main.Tpo tests/$(DEPDIR)/mesos_tests-main.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='messages/messages.pb.cc' object='messages.pb.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/main.cpp' object='tests/mesos_tests-main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o messages.pb.lo `test -f 'messages/messages.pb.cc' || echo '$(srcdir)/'`messages/messages.pb.cc
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-main.o `test -f 'tests/main.cpp' || echo '$(srcdir)/'`tests/main.cpp
 
-log.pb.lo: messages/log.pb.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT log.pb.lo -MD -MP -MF $(DEPDIR)/log.pb.Tpo -c -o log.pb.lo `test -f 'messages/log.pb.cc' || echo '$(srcdir)/'`messages/log.pb.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/log.pb.Tpo $(DEPDIR)/log.pb.Plo
+tests/mesos_tests-main.obj: tests/main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-main.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-main.Tpo -c -o tests/mesos_tests-main.obj `if test -f 'tests/main.cpp'; then $(CYGPATH_W) 'tests/main.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-main.Tpo tests/$(DEPDIR)/mesos_tests-main.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='messages/log.pb.cc' object='log.pb.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/main.cpp' object='tests/mesos_tests-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o log.pb.lo `test -f 'messages/log.pb.cc' || echo '$(srcdir)/'`messages/log.pb.cc
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-main.obj `if test -f 'tests/main.cpp'; then $(CYGPATH_W) 'tests/main.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/main.cpp'; fi`
 
-sched.lo: sched/sched.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sched.lo -MD -MP -MF $(DEPDIR)/sched.Tpo -c -o sched.lo `test -f 'sched/sched.cpp' || echo '$(srcdir)/'`sched/sched.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sched.Tpo $(DEPDIR)/sched.Plo
+tests/mesos_tests-utils.o: tests/utils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-utils.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-utils.Tpo -c -o tests/mesos_tests-utils.o `test -f 'tests/utils.cpp' || echo '$(srcdir)/'`tests/utils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-utils.Tpo tests/$(DEPDIR)/mesos_tests-utils.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='sched/sched.cpp' object='sched.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/utils.cpp' object='tests/mesos_tests-utils.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sched.lo `test -f 'sched/sched.cpp' || echo '$(srcdir)/'`sched/sched.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-utils.o `test -f 'tests/utils.cpp' || echo '$(srcdir)/'`tests/utils.cpp
 
-local.lo: local/local.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT local.lo -MD -MP -MF $(DEPDIR)/local.Tpo -c -o local.lo `test -f 'local/local.cpp' || echo '$(srcdir)/'`local/local.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/local.Tpo $(DEPDIR)/local.Plo
+tests/mesos_tests-utils.obj: tests/utils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-utils.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-utils.Tpo -c -o tests/mesos_tests-utils.obj `if test -f 'tests/utils.cpp'; then $(CYGPATH_W) 'tests/utils.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/utils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-utils.Tpo tests/$(DEPDIR)/mesos_tests-utils.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='local/local.cpp' object='local.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/utils.cpp' object='tests/mesos_tests-utils.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o local.lo `test -f 'local/local.cpp' || echo '$(srcdir)/'`local/local.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-utils.obj `if test -f 'tests/utils.cpp'; then $(CYGPATH_W) 'tests/utils.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/utils.cpp'; fi`
 
-replica.lo: log/replica.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT replica.lo -MD -MP -MF $(DEPDIR)/replica.Tpo -c -o replica.lo `test -f 'log/replica.cpp' || echo '$(srcdir)/'`log/replica.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/replica.Tpo $(DEPDIR)/replica.Plo
+tests/mesos_tests-master_tests.o: tests/master_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-master_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-master_tests.Tpo -c -o tests/mesos_tests-master_tests.o `test -f 'tests/master_tests.cpp' || echo '$(srcdir)/'`tests/master_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-master_tests.Tpo tests/$(DEPDIR)/mesos_tests-master_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='log/replica.cpp' object='replica.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/master_tests.cpp' object='tests/mesos_tests-master_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o replica.lo `test -f 'log/replica.cpp' || echo '$(srcdir)/'`log/replica.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-master_tests.o `test -f 'tests/master_tests.cpp' || echo '$(srcdir)/'`tests/master_tests.cpp
 
-coordinator.lo: log/coordinator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT coordinator.lo -MD -MP -MF $(DEPDIR)/coordinator.Tpo -c -o coordinator.lo `test -f 'log/coordinator.cpp' || echo '$(srcdir)/'`log/coordinator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/coordinator.Tpo $(DEPDIR)/coordinator.Plo
+tests/mesos_tests-master_tests.obj: tests/master_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-master_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-master_tests.Tpo -c -o tests/mesos_tests-master_tests.obj `if test -f 'tests/master_tests.cpp'; then $(CYGPATH_W) 'tests/master_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/master_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-master_tests.Tpo tests/$(DEPDIR)/mesos_tests-master_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='log/coordinator.cpp' object='coordinator.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/master_tests.cpp' object='tests/mesos_tests-master_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o coordinator.lo `test -f 'log/coordinator.cpp' || echo '$(srcdir)/'`log/coordinator.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-master_tests.obj `if test -f 'tests/master_tests.cpp'; then $(CYGPATH_W) 'tests/master_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/master_tests.cpp'; fi`
 
-master.lo: master/master.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT master.lo -MD -MP -MF $(DEPDIR)/master.Tpo -c -o master.lo `test -f 'master/master.cpp' || echo '$(srcdir)/'`master/master.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/master.Tpo $(DEPDIR)/master.Plo
+tests/mesos_tests-resource_offer_tests.o: tests/resource_offer_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-resource_offer_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-resource_offer_tests.Tpo -c -o tests/mesos_tests-resource_offer_tests.o `test -f 'tests/resource_offer_tests.cpp' || echo '$(srcdir)/'`tests/resource_offer_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-resource_offer_tests.Tpo tests/$(DEPDIR)/mesos_tests-resource_offer_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='master/master.cpp' object='master.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/resource_offer_tests.cpp' object='tests/mesos_tests-resource_offer_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o master.lo `test -f 'master/master.cpp' || echo '$(srcdir)/'`master/master.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-resource_offer_tests.o `test -f 'tests/resource_offer_tests.cpp' || echo '$(srcdir)/'`tests/resource_offer_tests.cpp
 
-slaves_manager.lo: master/slaves_manager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT slaves_manager.lo -MD -MP -MF $(DEPDIR)/slaves_manager.Tpo -c -o slaves_manager.lo `test -f 'master/slaves_manager.cpp' || echo '$(srcdir)/'`master/slaves_manager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/slaves_manager.Tpo $(DEPDIR)/slaves_manager.Plo
+tests/mesos_tests-resource_offer_tests.obj: tests/resource_offer_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-resource_offer_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-resource_offer_tests.Tpo -c -o tests/mesos_tests-resource_offer_tests.obj `if test -f 'tests/resource_offer_tests.cpp'; then $(CYGPATH_W) 'tests/resource_offer_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/resource_offer_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-resource_offer_tests.Tpo tests/$(DEPDIR)/mesos_tests-resource_offer_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='master/slaves_manager.cpp' object='slaves_manager.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/resource_offer_tests.cpp' object='tests/mesos_tests-resource_offer_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o slaves_manager.lo `test -f 'master/slaves_manager.cpp' || echo '$(srcdir)/'`master/slaves_manager.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-resource_offer_tests.obj `if test -f 'tests/resource_offer_tests.cpp'; then $(CYGPATH_W) 'tests/resource_offer_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/resource_offer_tests.cpp'; fi`
 
-frameworks_manager.lo: master/frameworks_manager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT frameworks_manager.lo -MD -MP -MF $(DEPDIR)/frameworks_manager.Tpo -c -o frameworks_manager.lo `test -f 'master/frameworks_manager.cpp' || echo '$(srcdir)/'`master/frameworks_manager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/frameworks_manager.Tpo $(DEPDIR)/frameworks_manager.Plo
+tests/mesos_tests-resource_offer_reply_tests.o: tests/resource_offer_reply_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-resource_offer_reply_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-resource_offer_reply_tests.Tpo -c -o tests/mesos_tests-resource_offer_reply_tests.o `test -f 'tests/resource_offer_reply_tests.cpp' || echo '$(srcdir)/'`tests/resource_offer_reply_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-resource_offer_reply_tests.Tpo tests/$(DEPDIR)/mesos_tests-resource_offer_reply_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='master/frameworks_manager.cpp' object='frameworks_manager.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/resource_offer_reply_tests.cpp' object='tests/mesos_tests-resource_offer_reply_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o frameworks_manager.lo `test -f 'master/frameworks_manager.cpp' || echo '$(srcdir)/'`master/frameworks_manager.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-resource_offer_reply_tests.o `test -f 'tests/resource_offer_reply_tests.cpp' || echo '$(srcdir)/'`tests/resource_offer_reply_tests.cpp
 
-allocator_factory.lo: master/allocator_factory.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT allocator_factory.lo -MD -MP -MF $(DEPDIR)/allocator_factory.Tpo -c -o allocator_factory.lo `test -f 'master/allocator_factory.cpp' || echo '$(srcdir)/'`master/allocator_factory.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/allocator_factory.Tpo $(DEPDIR)/allocator_factory.Plo
+tests/mesos_tests-resource_offer_reply_tests.obj: tests/resource_offer_reply_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-resource_offer_reply_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-resource_offer_reply_tests.Tpo -c -o tests/mesos_tests-resource_offer_reply_tests.obj `if test -f 'tests/resource_offer_reply_tests.cpp'; then $(CYGPATH_W) 'tests/resource_offer_reply_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/resource_offer_reply_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-resource_offer_reply_tests.Tpo tests/$(DEPDIR)/mesos_tests-resource_offer_reply_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='master/allocator_factory.cpp' object='allocator_factory.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/resource_offer_reply_tests.cpp' object='tests/mesos_tests-resource_offer_reply_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o allocator_factory.lo `test -f 'master/allocator_factory.cpp' || echo '$(srcdir)/'`master/allocator_factory.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-resource_offer_reply_tests.obj `if test -f 'tests/resource_offer_reply_tests.cpp'; then $(CYGPATH_W) 'tests/resource_offer_reply_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/resource_offer_reply_tests.cpp'; fi`
 
-simple_allocator.lo: master/simple_allocator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT simple_allocator.lo -MD -MP -MF $(DEPDIR)/simple_allocator.Tpo -c -o simple_allocator.lo `test -f 'master/simple_allocator.cpp' || echo '$(srcdir)/'`master/simple_allocator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/simple_allocator.Tpo $(DEPDIR)/simple_allocator.Plo
+tests/mesos_tests-fault_tolerant_tests.o: tests/fault_tolerant_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-fault_tolerant_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-fault_tolerant_tests.Tpo -c -o tests/mesos_tests-fault_tolerant_tests.o `test -f 'tests/fault_tolerant_tests.cpp' || echo '$(srcdir)/'`tests/fault_tolerant_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-fault_tolerant_tests.Tpo tests/$(DEPDIR)/mesos_tests-fault_tolerant_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='master/simple_allocator.cpp' object='simple_allocator.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/fault_tolerant_tests.cpp' object='tests/mesos_tests-fault_tolerant_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o simple_allocator.lo `test -f 'master/simple_allocator.cpp' || echo '$(srcdir)/'`master/simple_allocator.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-fault_tolerant_tests.o `test -f 'tests/fault_tolerant_tests.cpp' || echo '$(srcdir)/'`tests/fault_tolerant_tests.cpp
 
-slave.lo: slave/slave.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT slave.lo -MD -MP -MF $(DEPDIR)/slave.Tpo -c -o slave.lo `test -f 'slave/slave.cpp' || echo '$(srcdir)/'`slave/slave.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/slave.Tpo $(DEPDIR)/slave.Plo
+tests/mesos_tests-fault_tolerant_tests.obj: tests/fault_tolerant_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-fault_tolerant_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-fault_tolerant_tests.Tpo -c -o tests/mesos_tests-fault_tolerant_tests.obj `if test -f 'tests/fault_tolerant_tests.cpp'; then $(CYGPATH_W) 'tests/fault_tolerant_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/fault_tolerant_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-fault_tolerant_tests.Tpo tests/$(DEPDIR)/mesos_tests-fault_tolerant_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='slave/slave.cpp' object='slave.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/fault_tolerant_tests.cpp' object='tests/mesos_tests-fault_tolerant_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o slave.lo `test -f 'slave/slave.cpp' || echo '$(srcdir)/'`slave/slave.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-fault_tolerant_tests.obj `if test -f 'tests/fault_tolerant_tests.cpp'; then $(CYGPATH_W) 'tests/fault_tolerant_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/fault_tolerant_tests.cpp'; fi`
 
-isolation_module.lo: slave/isolation_module.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT isolation_module.lo -MD -MP -MF $(DEPDIR)/isolation_module.Tpo -c -o isolation_module.lo `test -f 'slave/isolation_module.cpp' || echo '$(srcdir)/'`slave/isolation_module.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/isolation_module.Tpo $(DEPDIR)/isolation_module.Plo
+tests/mesos_tests-log_tests.o: tests/log_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-log_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-log_tests.Tpo -c -o tests/mesos_tests-log_tests.o `test -f 'tests/log_tests.cpp' || echo '$(srcdir)/'`tests/log_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-log_tests.Tpo tests/$(DEPDIR)/mesos_tests-log_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='slave/isolation_module.cpp' object='isolation_module.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/log_tests.cpp' object='tests/mesos_tests-log_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o isolation_module.lo `test -f 'slave/isolation_module.cpp' || echo '$(srcdir)/'`slave/isolation_module.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-log_tests.o `test -f 'tests/log_tests.cpp' || echo '$(srcdir)/'`tests/log_tests.cpp
 
-process_based_isolation_module.lo: slave/process_based_isolation_module.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT process_based_isolation_module.lo -MD -MP -MF $(DEPDIR)/process_based_isolation_module.Tpo -c -o process_based_isolation_module.lo `test -f 'slave/process_based_isolation_module.cpp' || echo '$(srcdir)/'`slave/process_based_isolation_module.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/process_based_isolation_module.Tpo $(DEPDIR)/process_based_isolation_module.Plo
+tests/mesos_tests-log_tests.obj: tests/log_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-log_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-log_tests.Tpo -c -o tests/mesos_tests-log_tests.obj `if test -f 'tests/log_tests.cpp'; then $(CYGPATH_W) 'tests/log_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/log_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-log_tests.Tpo tests/$(DEPDIR)/mesos_tests-log_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='slave/process_based_isolation_module.cpp' object='process_based_isolation_module.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/log_tests.cpp' object='tests/mesos_tests-log_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o process_based_isolation_module.lo `test -f 'slave/process_based_isolation_module.cpp' || echo '$(srcdir)/'`slave/process_based_isolation_module.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-log_tests.obj `if test -f 'tests/log_tests.cpp'; then $(CYGPATH_W) 'tests/log_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/log_tests.cpp'; fi`
 
-reaper.lo: slave/reaper.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT reaper.lo -MD -MP -MF $(DEPDIR)/reaper.Tpo -c -o reaper.lo `test -f 'slave/reaper.cpp' || echo '$(srcdir)/'`slave/reaper.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/reaper.Tpo $(DEPDIR)/reaper.Plo
+tests/mesos_tests-resources_tests.o: tests/resources_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-resources_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-resources_tests.Tpo -c -o tests/mesos_tests-resources_tests.o `test -f 'tests/resources_tests.cpp' || echo '$(srcdir)/'`tests/resources_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-resources_tests.Tpo tests/$(DEPDIR)/mesos_tests-resources_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='slave/reaper.cpp' object='reaper.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/resources_tests.cpp' object='tests/mesos_tests-resources_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o reaper.lo `test -f 'slave/reaper.cpp' || echo '$(srcdir)/'`slave/reaper.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-resources_tests.o `test -f 'tests/resources_tests.cpp' || echo '$(srcdir)/'`tests/resources_tests.cpp
 
-launcher.lo: launcher/launcher.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT launcher.lo -MD -MP -MF $(DEPDIR)/launcher.Tpo -c -o launcher.lo `test -f 'launcher/launcher.cpp' || echo '$(srcdir)/'`launcher/launcher.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/launcher.Tpo $(DEPDIR)/launcher.Plo
+tests/mesos_tests-resources_tests.obj: tests/resources_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-resources_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-resources_tests.Tpo -c -o tests/mesos_tests-resources_tests.obj `if test -f 'tests/resources_tests.cpp'; then $(CYGPATH_W) 'tests/resources_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/resources_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-resources_tests.Tpo tests/$(DEPDIR)/mesos_tests-resources_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='launcher/launcher.cpp' object='launcher.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/resources_tests.cpp' object='tests/mesos_tests-resources_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o launcher.lo `test -f 'launcher/launcher.cpp' || echo '$(srcdir)/'`launcher/launcher.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-resources_tests.obj `if test -f 'tests/resources_tests.cpp'; then $(CYGPATH_W) 'tests/resources_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/resources_tests.cpp'; fi`
 
-exec.lo: exec/exec.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT exec.lo -MD -MP -MF $(DEPDIR)/exec.Tpo -c -o exec.lo `test -f 'exec/exec.cpp' || echo '$(srcdir)/'`exec/exec.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/exec.Tpo $(DEPDIR)/exec.Plo
+tests/mesos_tests-uuid_tests.o: tests/uuid_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-uuid_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-uuid_tests.Tpo -c -o tests/mesos_tests-uuid_tests.o `test -f 'tests/uuid_tests.cpp' || echo '$(srcdir)/'`tests/uuid_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-uuid_tests.Tpo tests/$(DEPDIR)/mesos_tests-uuid_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='exec/exec.cpp' object='exec.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/uuid_tests.cpp' object='tests/mesos_tests-uuid_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o exec.lo `test -f 'exec/exec.cpp' || echo '$(srcdir)/'`exec/exec.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-uuid_tests.o `test -f 'tests/uuid_tests.cpp' || echo '$(srcdir)/'`tests/uuid_tests.cpp
 
-fatal.lo: common/fatal.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT fatal.lo -MD -MP -MF $(DEPDIR)/fatal.Tpo -c -o fatal.lo `test -f 'common/fatal.cpp' || echo '$(srcdir)/'`common/fatal.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fatal.Tpo $(DEPDIR)/fatal.Plo
+tests/mesos_tests-uuid_tests.obj: tests/uuid_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-uuid_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-uuid_tests.Tpo -c -o tests/mesos_tests-uuid_tests.obj `if test -f 'tests/uuid_tests.cpp'; then $(CYGPATH_W) 'tests/uuid_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/uuid_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-uuid_tests.Tpo tests/$(DEPDIR)/mesos_tests-uuid_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='common/fatal.cpp' object='fatal.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/uuid_tests.cpp' object='tests/mesos_tests-uuid_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o fatal.lo `test -f 'common/fatal.cpp' || echo '$(srcdir)/'`common/fatal.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-uuid_tests.obj `if test -f 'tests/uuid_tests.cpp'; then $(CYGPATH_W) 'tests/uuid_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/uuid_tests.cpp'; fi`
 
-lock.lo: common/lock.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT lock.lo -MD -MP -MF $(DEPDIR)/lock.Tpo -c -o lock.lo `test -f 'common/lock.cpp' || echo '$(srcdir)/'`common/lock.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/lock.Tpo $(DEPDIR)/lock.Plo
+tests/mesos_tests-external_tests.o: tests/external_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-external_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-external_tests.Tpo -c -o tests/mesos_tests-external_tests.o `test -f 'tests/external_tests.cpp' || echo '$(srcdir)/'`tests/external_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-external_tests.Tpo tests/$(DEPDIR)/mesos_tests-external_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='common/lock.cpp' object='lock.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/external_tests.cpp' object='tests/mesos_tests-external_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o lock.lo `test -f 'common/lock.cpp' || echo '$(srcdir)/'`common/lock.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-external_tests.o `test -f 'tests/external_tests.cpp' || echo '$(srcdir)/'`tests/external_tests.cpp
 
-detector.lo: detector/detector.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT detector.lo -MD -MP -MF $(DEPDIR)/detector.Tpo -c -o detector.lo `test -f 'detector/detector.cpp' || echo '$(srcdir)/'`detector/detector.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/detector.Tpo $(DEPDIR)/detector.Plo
+tests/mesos_tests-external_tests.obj: tests/external_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-external_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-external_tests.Tpo -c -o tests/mesos_tests-external_tests.obj `if test -f 'tests/external_tests.cpp'; then $(CYGPATH_W) 'tests/external_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/external_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-external_tests.Tpo tests/$(DEPDIR)/mesos_tests-external_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='detector/detector.cpp' object='detector.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/external_tests.cpp' object='tests/mesos_tests-external_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o detector.lo `test -f 'detector/detector.cpp' || echo '$(srcdir)/'`detector/detector.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-external_tests.obj `if test -f 'tests/external_tests.cpp'; then $(CYGPATH_W) 'tests/external_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/external_tests.cpp'; fi`
 
-url_processor.lo: detector/url_processor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT url_processor.lo -MD -MP -MF $(DEPDIR)/url_processor.Tpo -c -o url_processor.lo `test -f 'detector/url_processor.cpp' || echo '$(srcdir)/'`detector/url_processor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/url_processor.Tpo $(DEPDIR)/url_processor.Plo
+tests/mesos_tests-sample_frameworks_tests.o: tests/sample_frameworks_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-sample_frameworks_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-sample_frameworks_tests.Tpo -c -o tests/mesos_tests-sample_frameworks_tests.o `test -f 'tests/sample_frameworks_tests.cpp' || echo '$(srcdir)/'`tests/sample_frameworks_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-sample_frameworks_tests.Tpo tests/$(DEPDIR)/mesos_tests-sample_frameworks_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='detector/url_processor.cpp' object='url_processor.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/sample_frameworks_tests.cpp' object='tests/mesos_tests-sample_frameworks_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o url_processor.lo `test -f 'detector/url_processor.cpp' || echo '$(srcdir)/'`detector/url_processor.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-sample_frameworks_tests.o `test -f 'tests/sample_frameworks_tests.cpp' || echo '$(srcdir)/'`tests/sample_frameworks_tests.cpp
 
-configurator.lo: configurator/configurator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT configurator.lo -MD -MP -MF $(DEPDIR)/configurator.Tpo -c -o configurator.lo `test -f 'configurator/configurator.cpp' || echo '$(srcdir)/'`configurator/configurator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/configurator.Tpo $(DEPDIR)/configurator.Plo
+tests/mesos_tests-sample_frameworks_tests.obj: tests/sample_frameworks_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-sample_frameworks_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-sample_frameworks_tests.Tpo -c -o tests/mesos_tests-sample_frameworks_tests.obj `if test -f 'tests/sample_frameworks_tests.cpp'; then $(CYGPATH_W) 'tests/sample_frameworks_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/sample_frameworks_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-sample_frameworks_tests.Tpo tests/$(DEPDIR)/mesos_tests-sample_frameworks_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='configurator/configurator.cpp' object='configurator.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/sample_frameworks_tests.cpp' object='tests/mesos_tests-sample_frameworks_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o configurator.lo `test -f 'configurator/configurator.cpp' || echo '$(srcdir)/'`configurator/configurator.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-sample_frameworks_tests.obj `if test -f 'tests/sample_frameworks_tests.cpp'; then $(CYGPATH_W) 'tests/sample_frameworks_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/sample_frameworks_tests.cpp'; fi`
 
-string_utils.lo: common/string_utils.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT string_utils.lo -MD -MP -MF $(DEPDIR)/string_utils.Tpo -c -o string_utils.lo `test -f 'common/string_utils.cpp' || echo '$(srcdir)/'`common/string_utils.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/string_utils.Tpo $(DEPDIR)/string_utils.Plo
+tests/mesos_tests-configurator_tests.o: tests/configurator_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-configurator_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-configurator_tests.Tpo -c -o tests/mesos_tests-configurator_tests.o `test -f 'tests/configurator_tests.cpp' || echo '$(srcdir)/'`tests/configurator_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-configurator_tests.Tpo tests/$(DEPDIR)/mesos_tests-configurator_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='common/string_utils.cpp' object='string_utils.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/configurator_tests.cpp' object='tests/mesos_tests-configurator_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o string_utils.lo `test -f 'common/string_utils.cpp' || echo '$(srcdir)/'`common/string_utils.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-configurator_tests.o `test -f 'tests/configurator_tests.cpp' || echo '$(srcdir)/'`tests/configurator_tests.cpp
 
-logging.lo: common/logging.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT logging.lo -MD -MP -MF $(DEPDIR)/logging.Tpo -c -o logging.lo `test -f 'common/logging.cpp' || echo '$(srcdir)/'`common/logging.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/logging.Tpo $(DEPDIR)/logging.Plo
+tests/mesos_tests-configurator_tests.obj: tests/configurator_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-configurator_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-configurator_tests.Tpo -c -o tests/mesos_tests-configurator_tests.obj `if test -f 'tests/configurator_tests.cpp'; then $(CYGPATH_W) 'tests/configurator_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/configurator_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-configurator_tests.Tpo tests/$(DEPDIR)/mesos_tests-configurator_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='common/logging.cpp' object='logging.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/configurator_tests.cpp' object='tests/mesos_tests-configurator_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o logging.lo `test -f 'common/logging.cpp' || echo '$(srcdir)/'`common/logging.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-configurator_tests.obj `if test -f 'tests/configurator_tests.cpp'; then $(CYGPATH_W) 'tests/configurator_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/configurator_tests.cpp'; fi`
 
-date_utils.lo: common/date_utils.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT date_utils.lo -MD -MP -MF $(DEPDIR)/date_utils.Tpo -c -o date_utils.lo `test -f 'common/date_utils.cpp' || echo '$(srcdir)/'`common/date_utils.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/date_utils.Tpo $(DEPDIR)/date_utils.Plo
+tests/mesos_tests-string_utils_tests.o: tests/string_utils_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-string_utils_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-string_utils_tests.Tpo -c -o tests/mesos_tests-string_utils_tests.o `test -f 'tests/string_utils_tests.cpp' || echo '$(srcdir)/'`tests/string_utils_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-string_utils_tests.Tpo tests/$(DEPDIR)/mesos_tests-string_utils_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='common/date_utils.cpp' object='date_utils.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/string_utils_tests.cpp' object='tests/mesos_tests-string_utils_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o date_utils.lo `test -f 'common/date_utils.cpp' || echo '$(srcdir)/'`common/date_utils.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-string_utils_tests.o `test -f 'tests/string_utils_tests.cpp' || echo '$(srcdir)/'`tests/string_utils_tests.cpp
 
-tokenize.lo: common/tokenize.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tokenize.lo -MD -MP -MF $(DEPDIR)/tokenize.Tpo -c -o tokenize.lo `test -f 'common/tokenize.cpp' || echo '$(srcdir)/'`common/tokenize.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/tokenize.Tpo $(DEPDIR)/tokenize.Plo
+tests/mesos_tests-string_utils_tests.obj: tests/string_utils_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-string_utils_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-string_utils_tests.Tpo -c -o tests/mesos_tests-string_utils_tests.obj `if test -f 'tests/string_utils_tests.cpp'; then $(CYGPATH_W) 'tests/string_utils_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/string_utils_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-string_utils_tests.Tpo tests/$(DEPDIR)/mesos_tests-string_utils_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='common/tokenize.cpp' object='tokenize.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/string_utils_tests.cpp' object='tests/mesos_tests-string_utils_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tokenize.lo `test -f 'common/tokenize.cpp' || echo '$(srcdir)/'`common/tokenize.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-string_utils_tests.obj `if test -f 'tests/string_utils_tests.cpp'; then $(CYGPATH_W) 'tests/string_utils_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/string_utils_tests.cpp'; fi`
 
-resources.lo: common/resources.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT resources.lo -MD -MP -MF $(DEPDIR)/resources.Tpo -c -o resources.lo `test -f 'common/resources.cpp' || echo '$(srcdir)/'`common/resources.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/resources.Tpo $(DEPDIR)/resources.Plo
+tests/mesos_tests-multimap_tests.o: tests/multimap_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-multimap_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-multimap_tests.Tpo -c -o tests/mesos_tests-multimap_tests.o `test -f 'tests/multimap_tests.cpp' || echo '$(srcdir)/'`tests/multimap_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-multimap_tests.Tpo tests/$(DEPDIR)/mesos_tests-multimap_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='common/resources.cpp' object='resources.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/multimap_tests.cpp' object='tests/mesos_tests-multimap_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o resources.lo `test -f 'common/resources.cpp' || echo '$(srcdir)/'`common/resources.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-multimap_tests.o `test -f 'tests/multimap_tests.cpp' || echo '$(srcdir)/'`tests/multimap_tests.cpp
 
-main.o: local/main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT main.o -MD -MP -MF $(DEPDIR)/main.Tpo -c -o main.o `test -f 'local/main.cpp' || echo '$(srcdir)/'`local/main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main.Tpo $(DEPDIR)/main.Po
+tests/mesos_tests-multimap_tests.obj: tests/multimap_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-multimap_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-multimap_tests.Tpo -c -o tests/mesos_tests-multimap_tests.obj `if test -f 'tests/multimap_tests.cpp'; then $(CYGPATH_W) 'tests/multimap_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/multimap_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-multimap_tests.Tpo tests/$(DEPDIR)/mesos_tests-multimap_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='local/main.cpp' object='main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/multimap_tests.cpp' object='tests/mesos_tests-multimap_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o main.o `test -f 'local/main.cpp' || echo '$(srcdir)/'`local/main.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-multimap_tests.obj `if test -f 'tests/multimap_tests.cpp'; then $(CYGPATH_W) 'tests/multimap_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/multimap_tests.cpp'; fi`
 
-main.obj: local/main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT main.obj -MD -MP -MF $(DEPDIR)/main.Tpo -c -o main.obj `if test -f 'local/main.cpp'; then $(CYGPATH_W) 'local/main.cpp'; else $(CYGPATH_W) '$(srcdir)/local/main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main.Tpo $(DEPDIR)/main.Po
+tests/mesos_tests-protobuf_io_tests.o: tests/protobuf_io_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-protobuf_io_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-protobuf_io_tests.Tpo -c -o tests/mesos_tests-protobuf_io_tests.o `test -f 'tests/protobuf_io_tests.cpp' || echo '$(srcdir)/'`tests/protobuf_io_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-protobuf_io_tests.Tpo tests/$(DEPDIR)/mesos_tests-protobuf_io_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='local/main.cpp' object='main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/protobuf_io_tests.cpp' object='tests/mesos_tests-protobuf_io_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o main.obj `if test -f 'local/main.cpp'; then $(CYGPATH_W) 'local/main.cpp'; else $(CYGPATH_W) '$(srcdir)/local/main.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-protobuf_io_tests.o `test -f 'tests/protobuf_io_tests.cpp' || echo '$(srcdir)/'`tests/protobuf_io_tests.cpp
 
-mesos_tests-main.o: tests/main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-main.o -MD -MP -MF $(DEPDIR)/mesos_tests-main.Tpo -c -o mesos_tests-main.o `test -f 'tests/main.cpp' || echo '$(srcdir)/'`tests/main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-main.Tpo $(DEPDIR)/mesos_tests-main.Po
+tests/mesos_tests-protobuf_io_tests.obj: tests/protobuf_io_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-protobuf_io_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-protobuf_io_tests.Tpo -c -o tests/mesos_tests-protobuf_io_tests.obj `if test -f 'tests/protobuf_io_tests.cpp'; then $(CYGPATH_W) 'tests/protobuf_io_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/protobuf_io_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-protobuf_io_tests.Tpo tests/$(DEPDIR)/mesos_tests-protobuf_io_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/main.cpp' object='mesos_tests-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/protobuf_io_tests.cpp' object='tests/mesos_tests-protobuf_io_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-main.o `test -f 'tests/main.cpp' || echo '$(srcdir)/'`tests/main.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-protobuf_io_tests.obj `if test -f 'tests/protobuf_io_tests.cpp'; then $(CYGPATH_W) 'tests/protobuf_io_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/protobuf_io_tests.cpp'; fi`
 
-mesos_tests-main.obj: tests/main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-main.obj -MD -MP -MF $(DEPDIR)/mesos_tests-main.Tpo -c -o mesos_tests-main.obj `if test -f 'tests/main.cpp'; then $(CYGPATH_W) 'tests/main.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-main.Tpo $(DEPDIR)/mesos_tests-main.Po
+tests/mesos_tests-lxc_isolation_tests.o: tests/lxc_isolation_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-lxc_isolation_tests.o -MD -MP -MF tests/$(DEPDIR)/mesos_tests-lxc_isolation_tests.Tpo -c -o tests/mesos_tests-lxc_isolation_tests.o `test -f 'tests/lxc_isolation_tests.cpp' || echo '$(srcdir)/'`tests/lxc_isolation_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-lxc_isolation_tests.Tpo tests/$(DEPDIR)/mesos_tests-lxc_isolation_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/main.cpp' object='mesos_tests-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/lxc_isolation_tests.cpp' object='tests/mesos_tests-lxc_isolation_tests.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-main.obj `if test -f 'tests/main.cpp'; then $(CYGPATH_W) 'tests/main.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/main.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-lxc_isolation_tests.o `test -f 'tests/lxc_isolation_tests.cpp' || echo '$(srcdir)/'`tests/lxc_isolation_tests.cpp
 
-mesos_tests-utils.o: tests/utils.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-utils.o -MD -MP -MF $(DEPDIR)/mesos_tests-utils.Tpo -c -o mesos_tests-utils.o `test -f 'tests/utils.cpp' || echo '$(srcdir)/'`tests/utils.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-utils.Tpo $(DEPDIR)/mesos_tests-utils.Po
+tests/mesos_tests-lxc_isolation_tests.obj: tests/lxc_isolation_tests.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/mesos_tests-lxc_isolation_tests.obj -MD -MP -MF tests/$(DEPDIR)/mesos_tests-lxc_isolation_tests.Tpo -c -o tests/mesos_tests-lxc_isolation_tests.obj `if test -f 'tests/lxc_isolation_tests.cpp'; then $(CYGPATH_W) 'tests/lxc_isolation_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/lxc_isolation_tests.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/mesos_tests-lxc_isolation_tests.Tpo tests/$(DEPDIR)/mesos_tests-lxc_isolation_tests.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/utils.cpp' object='mesos_tests-utils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/lxc_isolation_tests.cpp' object='tests/mesos_tests-lxc_isolation_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-utils.o `test -f 'tests/utils.cpp' || echo '$(srcdir)/'`tests/utils.cpp
-
-mesos_tests-utils.obj: tests/utils.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-utils.obj -MD -MP -MF $(DEPDIR)/mesos_tests-utils.Tpo -c -o mesos_tests-utils.obj `if test -f 'tests/utils.cpp'; then $(CYGPATH_W) 'tests/utils.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/utils.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-utils.Tpo $(DEPDIR)/mesos_tests-utils.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/utils.cpp' object='mesos_tests-utils.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-utils.obj `if test -f 'tests/utils.cpp'; then $(CYGPATH_W) 'tests/utils.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/utils.cpp'; fi`
-
-mesos_tests-master_tests.o: tests/master_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-master_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-master_tests.Tpo -c -o mesos_tests-master_tests.o `test -f 'tests/master_tests.cpp' || echo '$(srcdir)/'`tests/master_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-master_tests.Tpo $(DEPDIR)/mesos_tests-master_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/master_tests.cpp' object='mesos_tests-master_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-master_tests.o `test -f 'tests/master_tests.cpp' || echo '$(srcdir)/'`tests/master_tests.cpp
-
-mesos_tests-master_tests.obj: tests/master_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-master_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-master_tests.Tpo -c -o mesos_tests-master_tests.obj `if test -f 'tests/master_tests.cpp'; then $(CYGPATH_W) 'tests/master_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/master_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-master_tests.Tpo $(DEPDIR)/mesos_tests-master_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/master_tests.cpp' object='mesos_tests-master_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-master_tests.obj `if test -f 'tests/master_tests.cpp'; then $(CYGPATH_W) 'tests/master_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/master_tests.cpp'; fi`
-
-mesos_tests-resource_offer_tests.o: tests/resource_offer_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-resource_offer_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-resource_offer_tests.Tpo -c -o mesos_tests-resource_offer_tests.o `test -f 'tests/resource_offer_tests.cpp' || echo '$(srcdir)/'`tests/resource_offer_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-resource_offer_tests.Tpo $(DEPDIR)/mesos_tests-resource_offer_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/resource_offer_tests.cpp' object='mesos_tests-resource_offer_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-resource_offer_tests.o `test -f 'tests/resource_offer_tests.cpp' || echo '$(srcdir)/'`tests/resource_offer_tests.cpp
-
-mesos_tests-resource_offer_tests.obj: tests/resource_offer_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-resource_offer_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-resource_offer_tests.Tpo -c -o mesos_tests-resource_offer_tests.obj `if test -f 'tests/resource_offer_tests.cpp'; then $(CYGPATH_W) 'tests/resource_offer_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/resource_offer_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-resource_offer_tests.Tpo $(DEPDIR)/mesos_tests-resource_offer_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/resource_offer_tests.cpp' object='mesos_tests-resource_offer_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-resource_offer_tests.obj `if test -f 'tests/resource_offer_tests.cpp'; then $(CYGPATH_W) 'tests/resource_offer_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/resource_offer_tests.cpp'; fi`
-
-mesos_tests-resource_offer_reply_tests.o: tests/resource_offer_reply_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-resource_offer_reply_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-resource_offer_reply_tests.Tpo -c -o mesos_tests-resource_offer_reply_tests.o `test -f 'tests/resource_offer_reply_tests.cpp' || echo '$(srcdir)/'`tests/resource_offer_reply_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-resource_offer_reply_tests.Tpo $(DEPDIR)/mesos_tests-resource_offer_reply_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/resource_offer_reply_tests.cpp' object='mesos_tests-resource_offer_reply_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-resource_offer_reply_tests.o `test -f 'tests/resource_offer_reply_tests.cpp' || echo '$(srcdir)/'`tests/resource_offer_reply_tests.cpp
-
-mesos_tests-resource_offer_reply_tests.obj: tests/resource_offer_reply_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-resource_offer_reply_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-resource_offer_reply_tests.Tpo -c -o mesos_tests-resource_offer_reply_tests.obj `if test -f 'tests/resource_offer_reply_tests.cpp'; then $(CYGPATH_W) 'tests/resource_offer_reply_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/resource_offer_reply_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-resource_offer_reply_tests.Tpo $(DEPDIR)/mesos_tests-resource_offer_reply_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/resource_offer_reply_tests.cpp' object='mesos_tests-resource_offer_reply_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-resource_offer_reply_tests.obj `if test -f 'tests/resource_offer_reply_tests.cpp'; then $(CYGPATH_W) 'tests/resource_offer_reply_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/resource_offer_reply_tests.cpp'; fi`
-
-mesos_tests-fault_tolerant_tests.o: tests/fault_tolerant_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-fault_tolerant_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-fault_tolerant_tests.Tpo -c -o mesos_tests-fault_tolerant_tests.o `test -f 'tests/fault_tolerant_tests.cpp' || echo '$(srcdir)/'`tests/fault_tolerant_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-fault_tolerant_tests.Tpo $(DEPDIR)/mesos_tests-fault_tolerant_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/fault_tolerant_tests.cpp' object='mesos_tests-fault_tolerant_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-fault_tolerant_tests.o `test -f 'tests/fault_tolerant_tests.cpp' || echo '$(srcdir)/'`tests/fault_tolerant_tests.cpp
-
-mesos_tests-fault_tolerant_tests.obj: tests/fault_tolerant_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-fault_tolerant_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-fault_tolerant_tests.Tpo -c -o mesos_tests-fault_tolerant_tests.obj `if test -f 'tests/fault_tolerant_tests.cpp'; then $(CYGPATH_W) 'tests/fault_tolerant_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/fault_tolerant_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-fault_tolerant_tests.Tpo $(DEPDIR)/mesos_tests-fault_tolerant_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/fault_tolerant_tests.cpp' object='mesos_tests-fault_tolerant_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-fault_tolerant_tests.obj `if test -f 'tests/fault_tolerant_tests.cpp'; then $(CYGPATH_W) 'tests/fault_tolerant_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/fault_tolerant_tests.cpp'; fi`
-
-mesos_tests-log_tests.o: tests/log_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-log_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-log_tests.Tpo -c -o mesos_tests-log_tests.o `test -f 'tests/log_tests.cpp' || echo '$(srcdir)/'`tests/log_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-log_tests.Tpo $(DEPDIR)/mesos_tests-log_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/log_tests.cpp' object='mesos_tests-log_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-log_tests.o `test -f 'tests/log_tests.cpp' || echo '$(srcdir)/'`tests/log_tests.cpp
-
-mesos_tests-log_tests.obj: tests/log_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-log_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-log_tests.Tpo -c -o mesos_tests-log_tests.obj `if test -f 'tests/log_tests.cpp'; then $(CYGPATH_W) 'tests/log_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/log_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-log_tests.Tpo $(DEPDIR)/mesos_tests-log_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/log_tests.cpp' object='mesos_tests-log_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-log_tests.obj `if test -f 'tests/log_tests.cpp'; then $(CYGPATH_W) 'tests/log_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/log_tests.cpp'; fi`
-
-mesos_tests-resources_tests.o: tests/resources_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-resources_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-resources_tests.Tpo -c -o mesos_tests-resources_tests.o `test -f 'tests/resources_tests.cpp' || echo '$(srcdir)/'`tests/resources_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-resources_tests.Tpo $(DEPDIR)/mesos_tests-resources_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/resources_tests.cpp' object='mesos_tests-resources_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-resources_tests.o `test -f 'tests/resources_tests.cpp' || echo '$(srcdir)/'`tests/resources_tests.cpp
-
-mesos_tests-resources_tests.obj: tests/resources_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-resources_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-resources_tests.Tpo -c -o mesos_tests-resources_tests.obj `if test -f 'tests/resources_tests.cpp'; then $(CYGPATH_W) 'tests/resources_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/resources_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-resources_tests.Tpo $(DEPDIR)/mesos_tests-resources_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/resources_tests.cpp' object='mesos_tests-resources_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-resources_tests.obj `if test -f 'tests/resources_tests.cpp'; then $(CYGPATH_W) 'tests/resources_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/resources_tests.cpp'; fi`
-
-mesos_tests-uuid_tests.o: tests/uuid_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-uuid_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-uuid_tests.Tpo -c -o mesos_tests-uuid_tests.o `test -f 'tests/uuid_tests.cpp' || echo '$(srcdir)/'`tests/uuid_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-uuid_tests.Tpo $(DEPDIR)/mesos_tests-uuid_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/uuid_tests.cpp' object='mesos_tests-uuid_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-uuid_tests.o `test -f 'tests/uuid_tests.cpp' || echo '$(srcdir)/'`tests/uuid_tests.cpp
-
-mesos_tests-uuid_tests.obj: tests/uuid_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-uuid_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-uuid_tests.Tpo -c -o mesos_tests-uuid_tests.obj `if test -f 'tests/uuid_tests.cpp'; then $(CYGPATH_W) 'tests/uuid_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/uuid_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-uuid_tests.Tpo $(DEPDIR)/mesos_tests-uuid_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/uuid_tests.cpp' object='mesos_tests-uuid_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-uuid_tests.obj `if test -f 'tests/uuid_tests.cpp'; then $(CYGPATH_W) 'tests/uuid_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/uuid_tests.cpp'; fi`
-
-mesos_tests-external_tests.o: tests/external_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-external_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-external_tests.Tpo -c -o mesos_tests-external_tests.o `test -f 'tests/external_tests.cpp' || echo '$(srcdir)/'`tests/external_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-external_tests.Tpo $(DEPDIR)/mesos_tests-external_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/external_tests.cpp' object='mesos_tests-external_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-external_tests.o `test -f 'tests/external_tests.cpp' || echo '$(srcdir)/'`tests/external_tests.cpp
-
-mesos_tests-external_tests.obj: tests/external_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-external_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-external_tests.Tpo -c -o mesos_tests-external_tests.obj `if test -f 'tests/external_tests.cpp'; then $(CYGPATH_W) 'tests/external_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/external_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-external_tests.Tpo $(DEPDIR)/mesos_tests-external_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/external_tests.cpp' object='mesos_tests-external_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-external_tests.obj `if test -f 'tests/external_tests.cpp'; then $(CYGPATH_W) 'tests/external_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/external_tests.cpp'; fi`
-
-mesos_tests-sample_frameworks_tests.o: tests/sample_frameworks_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-sample_frameworks_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-sample_frameworks_tests.Tpo -c -o mesos_tests-sample_frameworks_tests.o `test -f 'tests/sample_frameworks_tests.cpp' || echo '$(srcdir)/'`tests/sample_frameworks_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-sample_frameworks_tests.Tpo $(DEPDIR)/mesos_tests-sample_frameworks_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/sample_frameworks_tests.cpp' object='mesos_tests-sample_frameworks_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-sample_frameworks_tests.o `test -f 'tests/sample_frameworks_tests.cpp' || echo '$(srcdir)/'`tests/sample_frameworks_tests.cpp
-
-mesos_tests-sample_frameworks_tests.obj: tests/sample_frameworks_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-sample_frameworks_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-sample_frameworks_tests.Tpo -c -o mesos_tests-sample_frameworks_tests.obj `if test -f 'tests/sample_frameworks_tests.cpp'; then $(CYGPATH_W) 'tests/sample_frameworks_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/sample_frameworks_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-sample_frameworks_tests.Tpo $(DEPDIR)/mesos_tests-sample_frameworks_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/sample_frameworks_tests.cpp' object='mesos_tests-sample_frameworks_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-sample_frameworks_tests.obj `if test -f 'tests/sample_frameworks_tests.cpp'; then $(CYGPATH_W) 'tests/sample_frameworks_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/sample_frameworks_tests.cpp'; fi`
-
-mesos_tests-configurator_tests.o: tests/configurator_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-configurator_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-configurator_tests.Tpo -c -o mesos_tests-configurator_tests.o `test -f 'tests/configurator_tests.cpp' || echo '$(srcdir)/'`tests/configurator_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-configurator_tests.Tpo $(DEPDIR)/mesos_tests-configurator_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/configurator_tests.cpp' object='mesos_tests-configurator_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-configurator_tests.o `test -f 'tests/configurator_tests.cpp' || echo '$(srcdir)/'`tests/configurator_tests.cpp
-
-mesos_tests-configurator_tests.obj: tests/configurator_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-configurator_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-configurator_tests.Tpo -c -o mesos_tests-configurator_tests.obj `if test -f 'tests/configurator_tests.cpp'; then $(CYGPATH_W) 'tests/configurator_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/configurator_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-configurator_tests.Tpo $(DEPDIR)/mesos_tests-configurator_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/configurator_tests.cpp' object='mesos_tests-configurator_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-configurator_tests.obj `if test -f 'tests/configurator_tests.cpp'; then $(CYGPATH_W) 'tests/configurator_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/configurator_tests.cpp'; fi`
-
-mesos_tests-string_utils_tests.o: tests/string_utils_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-string_utils_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-string_utils_tests.Tpo -c -o mesos_tests-string_utils_tests.o `test -f 'tests/string_utils_tests.cpp' || echo '$(srcdir)/'`tests/string_utils_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-string_utils_tests.Tpo $(DEPDIR)/mesos_tests-string_utils_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/string_utils_tests.cpp' object='mesos_tests-string_utils_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-string_utils_tests.o `test -f 'tests/string_utils_tests.cpp' || echo '$(srcdir)/'`tests/string_utils_tests.cpp
-
-mesos_tests-string_utils_tests.obj: tests/string_utils_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-string_utils_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-string_utils_tests.Tpo -c -o mesos_tests-string_utils_tests.obj `if test -f 'tests/string_utils_tests.cpp'; then $(CYGPATH_W) 'tests/string_utils_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/string_utils_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-string_utils_tests.Tpo $(DEPDIR)/mesos_tests-string_utils_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/string_utils_tests.cpp' object='mesos_tests-string_utils_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-string_utils_tests.obj `if test -f 'tests/string_utils_tests.cpp'; then $(CYGPATH_W) 'tests/string_utils_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/string_utils_tests.cpp'; fi`
-
-mesos_tests-multimap_tests.o: tests/multimap_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-multimap_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-multimap_tests.Tpo -c -o mesos_tests-multimap_tests.o `test -f 'tests/multimap_tests.cpp' || echo '$(srcdir)/'`tests/multimap_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-multimap_tests.Tpo $(DEPDIR)/mesos_tests-multimap_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/multimap_tests.cpp' object='mesos_tests-multimap_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-multimap_tests.o `test -f 'tests/multimap_tests.cpp' || echo '$(srcdir)/'`tests/multimap_tests.cpp
-
-mesos_tests-multimap_tests.obj: tests/multimap_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-multimap_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-multimap_tests.Tpo -c -o mesos_tests-multimap_tests.obj `if test -f 'tests/multimap_tests.cpp'; then $(CYGPATH_W) 'tests/multimap_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/multimap_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-multimap_tests.Tpo $(DEPDIR)/mesos_tests-multimap_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/multimap_tests.cpp' object='mesos_tests-multimap_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-multimap_tests.obj `if test -f 'tests/multimap_tests.cpp'; then $(CYGPATH_W) 'tests/multimap_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/multimap_tests.cpp'; fi`
-
-mesos_tests-protobuf_io_tests.o: tests/protobuf_io_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-protobuf_io_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-protobuf_io_tests.Tpo -c -o mesos_tests-protobuf_io_tests.o `test -f 'tests/protobuf_io_tests.cpp' || echo '$(srcdir)/'`tests/protobuf_io_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-protobuf_io_tests.Tpo $(DEPDIR)/mesos_tests-protobuf_io_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/protobuf_io_tests.cpp' object='mesos_tests-protobuf_io_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-protobuf_io_tests.o `test -f 'tests/protobuf_io_tests.cpp' || echo '$(srcdir)/'`tests/protobuf_io_tests.cpp
-
-mesos_tests-protobuf_io_tests.obj: tests/protobuf_io_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-protobuf_io_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-protobuf_io_tests.Tpo -c -o mesos_tests-protobuf_io_tests.obj `if test -f 'tests/protobuf_io_tests.cpp'; then $(CYGPATH_W) 'tests/protobuf_io_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/protobuf_io_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-protobuf_io_tests.Tpo $(DEPDIR)/mesos_tests-protobuf_io_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/protobuf_io_tests.cpp' object='mesos_tests-protobuf_io_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-protobuf_io_tests.obj `if test -f 'tests/protobuf_io_tests.cpp'; then $(CYGPATH_W) 'tests/protobuf_io_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/protobuf_io_tests.cpp'; fi`
-
-mesos_tests-lxc_isolation_tests.o: tests/lxc_isolation_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-lxc_isolation_tests.o -MD -MP -MF $(DEPDIR)/mesos_tests-lxc_isolation_tests.Tpo -c -o mesos_tests-lxc_isolation_tests.o `test -f 'tests/lxc_isolation_tests.cpp' || echo '$(srcdir)/'`tests/lxc_isolation_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-lxc_isolation_tests.Tpo $(DEPDIR)/mesos_tests-lxc_isolation_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/lxc_isolation_tests.cpp' object='mesos_tests-lxc_isolation_tests.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-lxc_isolation_tests.o `test -f 'tests/lxc_isolation_tests.cpp' || echo '$(srcdir)/'`tests/lxc_isolation_tests.cpp
-
-mesos_tests-lxc_isolation_tests.obj: tests/lxc_isolation_tests.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mesos_tests-lxc_isolation_tests.obj -MD -MP -MF $(DEPDIR)/mesos_tests-lxc_isolation_tests.Tpo -c -o mesos_tests-lxc_isolation_tests.obj `if test -f 'tests/lxc_isolation_tests.cpp'; then $(CYGPATH_W) 'tests/lxc_isolation_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/lxc_isolation_tests.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mesos_tests-lxc_isolation_tests.Tpo $(DEPDIR)/mesos_tests-lxc_isolation_tests.Po
-@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/lxc_isolation_tests.cpp' object='mesos_tests-lxc_isolation_tests.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mesos_tests-lxc_isolation_tests.obj `if test -f 'tests/lxc_isolation_tests.cpp'; then $(CYGPATH_W) 'tests/lxc_isolation_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/lxc_isolation_tests.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mesos_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/mesos_tests-lxc_isolation_tests.obj `if test -f 'tests/lxc_isolation_tests.cpp'; then $(CYGPATH_W) 'tests/lxc_isolation_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/lxc_isolation_tests.cpp'; fi`
 
 .cpp.o:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
 
 .cpp.obj:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .cpp.lo:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCXX_TRUE@	$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
@@ -1127,6 +1150,17 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+	-rm -rf common/.libs common/_libs
+	-rm -rf configurator/.libs configurator/_libs
+	-rm -rf detector/.libs detector/_libs
+	-rm -rf exec/.libs exec/_libs
+	-rm -rf launcher/.libs launcher/_libs
+	-rm -rf local/.libs local/_libs
+	-rm -rf log/.libs log/_libs
+	-rm -rf master/.libs master/_libs
+	-rm -rf messages/.libs messages/_libs
+	-rm -rf sched/.libs sched/_libs
+	-rm -rf slave/.libs slave/_libs
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -1335,6 +1369,30 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f common/$(DEPDIR)/$(am__dirstamp)
+	-rm -f common/$(am__dirstamp)
+	-rm -f configurator/$(DEPDIR)/$(am__dirstamp)
+	-rm -f configurator/$(am__dirstamp)
+	-rm -f detector/$(DEPDIR)/$(am__dirstamp)
+	-rm -f detector/$(am__dirstamp)
+	-rm -f exec/$(DEPDIR)/$(am__dirstamp)
+	-rm -f exec/$(am__dirstamp)
+	-rm -f launcher/$(DEPDIR)/$(am__dirstamp)
+	-rm -f launcher/$(am__dirstamp)
+	-rm -f local/$(DEPDIR)/$(am__dirstamp)
+	-rm -f local/$(am__dirstamp)
+	-rm -f log/$(DEPDIR)/$(am__dirstamp)
+	-rm -f log/$(am__dirstamp)
+	-rm -f master/$(DEPDIR)/$(am__dirstamp)
+	-rm -f master/$(am__dirstamp)
+	-rm -f messages/$(DEPDIR)/$(am__dirstamp)
+	-rm -f messages/$(am__dirstamp)
+	-rm -f sched/$(DEPDIR)/$(am__dirstamp)
+	-rm -f sched/$(am__dirstamp)
+	-rm -f slave/$(DEPDIR)/$(am__dirstamp)
+	-rm -f slave/$(am__dirstamp)
+	-rm -f tests/$(DEPDIR)/$(am__dirstamp)
+	-rm -f tests/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -1346,7 +1404,7 @@ clean-am: clean-binPROGRAMS clean-checkPROGRAMS clean-generic \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR)
+	-rm -rf ./$(DEPDIR) common/$(DEPDIR) configurator/$(DEPDIR) detector/$(DEPDIR) exec/$(DEPDIR) launcher/$(DEPDIR) local/$(DEPDIR) log/$(DEPDIR) master/$(DEPDIR) messages/$(DEPDIR) sched/$(DEPDIR) slave/$(DEPDIR) tests/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1392,7 +1450,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR)
+	-rm -rf ./$(DEPDIR) common/$(DEPDIR) configurator/$(DEPDIR) detector/$(DEPDIR) exec/$(DEPDIR) launcher/$(DEPDIR) local/$(DEPDIR) log/$(DEPDIR) master/$(DEPDIR) messages/$(DEPDIR) sched/$(DEPDIR) slave/$(DEPDIR) tests/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

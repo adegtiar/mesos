@@ -67,14 +67,41 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES = src/config/config.hpp
 CONFIG_CLEAN_VPATH_FILES =
-AM_V_GEN = $(am__v_GEN_$(V))
-am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
-am__v_GEN_0 = @echo "  GEN   " $@;
+libgmock_la_LIBADD =
+am_libgmock_la_OBJECTS = libgmock_la-gmock-all.lo \
+	libgmock_la-gtest-all.lo
+libgmock_la_OBJECTS = $(am_libgmock_la_OBJECTS)
+AM_V_lt = $(am__v_lt_$(V))
+am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
+am__v_lt_0 = --silent
+DEFAULT_INCLUDES = -I.@am__isrc@
+depcomp = $(SHELL) $(top_srcdir)/depcomp
+am__depfiles_maybe = depfiles
+am__mv = mv -f
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CXXFLAGS) $(CXXFLAGS)
+AM_V_CXX = $(am__v_CXX_$(V))
+am__v_CXX_ = $(am__v_CXX_$(AM_DEFAULT_VERBOSITY))
+am__v_CXX_0 = @echo "  CXX   " $@;
 AM_V_at = $(am__v_at_$(V))
 am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
 am__v_at_0 = @
-SOURCES =
-DIST_SOURCES =
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CXXLD = $(am__v_CXXLD_$(V))
+am__v_CXXLD_ = $(am__v_CXXLD_$(AM_DEFAULT_VERBOSITY))
+am__v_CXXLD_0 = @echo "  CXXLD " $@;
+AM_V_GEN = $(am__v_GEN_$(V))
+am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
+am__v_GEN_0 = @echo "  GEN   " $@;
+SOURCES = $(libgmock_la_SOURCES)
+DIST_SOURCES = $(libgmock_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-dvi-recursive install-exec-recursive \
@@ -200,6 +227,7 @@ STRIP = @STRIP@
 VERSION = @VERSION@
 WEBUI_CPPFLAGS = @WEBUI_CPPFLAGS@
 WEBUI_LDFLAGS = @WEBUI_LDFLAGS@
+WITH_WEBUI = @WITH_WEBUI@
 WITH_ZOOKEEPER = @WITH_ZOOKEEPER@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -275,12 +303,23 @@ SUBDIRS = . src
 DIST_SUBDIRS = $(subdirs) src
 PROTOBUF = third_party/protobuf-2.3.0
 GLOG = third_party/glog-0.3.1
-GMOCK = third_party/gmock-1.5.0
+GMOCK = third_party/gmock-1.6.0
+GTEST = $(GMOCK)/gtest
 ZOOKEEPER = third_party/zookeeper-3.3.1/src/c
 LIBPROCESS = third_party/libprocess
+check_LTLIBRARIES = libgmock.la
+libgmock_la_SOURCES = $(top_srcdir)/$(GMOCK)/src/gmock-all.cc	\
+                      $(top_srcdir)/$(GTEST)/src/gtest-all.cc
+
+libgmock_la_CPPFLAGS = -I$(top_srcdir)/$(GTEST)/include         \
+                       -I$(top_srcdir)/$(GMOCK)/include         \
+                       -I$(top_srcdir)/$(GTEST)                 \
+                       -I$(top_srcdir)/$(GMOCK)
+
 all: all-recursive
 
 .SUFFIXES:
+.SUFFIXES: .cc .lo .o .obj
 am--refresh:
 	@:
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
@@ -317,6 +356,66 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 $(am__aclocal_m4_deps):
 src/config/config.hpp: $(top_builddir)/config.status $(top_srcdir)/src/config/config.hpp.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
+
+clean-checkLTLIBRARIES:
+	-test -z "$(check_LTLIBRARIES)" || rm -f $(check_LTLIBRARIES)
+	@list='$(check_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+libgmock.la: $(libgmock_la_OBJECTS) $(libgmock_la_DEPENDENCIES) 
+	$(AM_V_CXXLD)$(CXXLINK)  $(libgmock_la_OBJECTS) $(libgmock_la_LIBADD) $(LIBS)
+
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT)
+
+distclean-compile:
+	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgmock_la-gmock-all.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgmock_la-gtest-all.Plo@am__quote@
+
+.cc.o:
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
+
+.cc.obj:
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.cc.lo:
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+libgmock_la-gmock-all.lo: $(top_srcdir)/$(GMOCK)/src/gmock-all.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgmock_la-gmock-all.lo -MD -MP -MF $(DEPDIR)/libgmock_la-gmock-all.Tpo -c -o libgmock_la-gmock-all.lo `test -f '$(top_srcdir)/$(GMOCK)/src/gmock-all.cc' || echo '$(srcdir)/'`$(top_srcdir)/$(GMOCK)/src/gmock-all.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgmock_la-gmock-all.Tpo $(DEPDIR)/libgmock_la-gmock-all.Plo
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/$(GMOCK)/src/gmock-all.cc' object='libgmock_la-gmock-all.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgmock_la-gmock-all.lo `test -f '$(top_srcdir)/$(GMOCK)/src/gmock-all.cc' || echo '$(srcdir)/'`$(top_srcdir)/$(GMOCK)/src/gmock-all.cc
+
+libgmock_la-gtest-all.lo: $(top_srcdir)/$(GTEST)/src/gtest-all.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libgmock_la-gtest-all.lo -MD -MP -MF $(DEPDIR)/libgmock_la-gtest-all.Tpo -c -o libgmock_la-gtest-all.lo `test -f '$(top_srcdir)/$(GTEST)/src/gtest-all.cc' || echo '$(srcdir)/'`$(top_srcdir)/$(GTEST)/src/gtest-all.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgmock_la-gtest-all.Tpo $(DEPDIR)/libgmock_la-gtest-all.Plo
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/$(GTEST)/src/gtest-all.cc' object='libgmock_la-gtest-all.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libgmock_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libgmock_la-gtest-all.lo `test -f '$(top_srcdir)/$(GTEST)/src/gtest-all.cc' || echo '$(srcdir)/'`$(top_srcdir)/$(GTEST)/src/gtest-all.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -638,6 +737,7 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
+	$(MAKE) $(AM_MAKEFLAGS) $(check_LTLIBRARIES)
 check: check-recursive
 all-am: Makefile all-local
 installdirs: installdirs-recursive
@@ -669,13 +769,15 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-recursive
 
-clean-am: clean-generic clean-libtool clean-local mostlyclean-am
+clean-am: clean-checkLTLIBRARIES clean-generic clean-libtool \
+	clean-local mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
-distclean-am: clean-am distclean-generic distclean-libtool \
-	distclean-tags
+distclean-am: clean-am distclean-compile distclean-generic \
+	distclean-libtool distclean-tags
 
 dvi: dvi-recursive
 
@@ -720,12 +822,14 @@ installcheck-am:
 maintainer-clean: maintainer-clean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-recursive
 
-mostlyclean-am: mostlyclean-generic mostlyclean-libtool
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
 
 pdf: pdf-recursive
 
@@ -737,23 +841,24 @@ ps-am:
 
 uninstall-am:
 
-.MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) ctags-recursive \
-	install-am install-strip tags-recursive
+.MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) check-am \
+	ctags-recursive install-am install-strip tags-recursive
 
 .PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
 	all all-am all-local am--refresh check check-am clean \
-	clean-generic clean-libtool clean-local ctags ctags-recursive \
-	dist dist-all dist-bzip2 dist-gzip dist-lzma dist-shar \
-	dist-tarZ dist-xz dist-zip distcheck distclean \
-	distclean-generic distclean-libtool distclean-tags \
-	distcleancheck distdir distuninstallcheck dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	clean-checkLTLIBRARIES clean-generic clean-libtool clean-local \
+	ctags ctags-recursive dist dist-all dist-bzip2 dist-gzip \
+	dist-lzma dist-shar dist-tarZ dist-xz dist-zip distcheck \
+	distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distcleancheck distdir \
+	distuninstallcheck dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	installdirs-am maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
 	uninstall uninstall-am
 
@@ -762,7 +867,6 @@ all-local:
 	@echo "Building third-party libraries"
 	@cd $(PROTOBUF) && $(MAKE) $(AM_MAKEFLAGS) all
 	@cd $(GLOG) && $(MAKE) $(AM_MAKEFLAGS) all
-	@cd $(GMOCK) && $(MAKE) $(AM_MAKEFLAGS) all
 @WITH_INCLUDED_ZOOKEEPER_TRUE@	@cd $(ZOOKEEPER) && $(MAKE) $(AM_MAKEFLAGS) all
 	@cd $(LIBPROCESS) && $(MAKE) $(AM_MAKEFLAGS) all
 
@@ -770,7 +874,6 @@ clean-local:
 	@echo "Cleaning third-party libraries"
 	@cd $(PROTOBUF) && $(MAKE) $(AM_MAKEFLAGS) clean
 	@cd $(GLOG) && $(MAKE) $(AM_MAKEFLAGS) clean
-	@cd $(GMOCK) && $(MAKE) $(AM_MAKEFLAGS) clean
 @WITH_INCLUDED_ZOOKEEPER_TRUE@	@cd $(ZOOKEEPER) && $(MAKE) $(AM_MAKEFLAGS) clean
 	@cd $(LIBPROCESS) && $(MAKE) $(AM_MAKEFLAGS) clean
 
